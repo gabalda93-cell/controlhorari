@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Horari Laboral</title>
+    <style>
+        :root {
+            --bg-body: #f4f5f7;
+            --bg-card: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --border: #e2e8f0;
+            --primary: #4a5568;
+            --primary-light: #edf2f7;
+            --success: #48bb78;
+            --danger: #f56565;
+            --warning-bg: #feebc8;
+            --warning-text: #c05621;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .error-banner {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+            background: var(--warning-bg);
+            color: var(--warning-text);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #fbd38d;
+            text-align: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .contract-badge {
+            background: var(--primary-light);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .card {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        input[type="date"], input[type="time"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            color: var(--text-main);
+            background: var(--bg-body);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .shift-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+            background: var(--primary-light);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2d3748;
+        }
+
+        .summary-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--primary-light);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .stat-card.alert-success .value { color: var(--success); }
+        .stat-card.alert-danger .value { color: var(--danger); }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding-bottom: 5px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .day-cell:hover {
+            border-color: var(--primary);
+        }
+
+        .day-cell .day-num {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .day-cell .day-hours {
+            font-size: 0.75rem;
+            text-align: center;
+            background: var(--primary-light);
+            border-radius: 4px;
+            padding: 2px 0;
+            font-weight: 600;
+        }
+
+        .day-cell.empty {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        .day-cell.rest {
+            background: #edf2f7;
+            color: var(--text-muted);
+        }
+
+        .day-cell.rest .day-hours {
+            background: transparent;
+            color: var(--text-muted);
+        }
+
+        .day-cell.current-selection {
+            border: 2px solid var(--primary);
+        }
+
+        .toast-notification {
+            display: none;
+            background: var(--success);
+            color: white;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div id="security-warning" class="error-banner">
+    ⚠️ <strong>Atenció:</strong> El teu navegador està bloquejant l'accés al LocalStorage (segurament per obrir el fitxer directament des del disc dur amb <em>file://</em>). Les dades es perdran en refrescar. Puja l'arxiu a GitHub o usa un servidor local per solucionar-ho.
+</div>
+
+<div class="app-container">
+    <header>
+        <h1>Control Horari laboral</h1>
+        <div class="contract-badge">Contracte: 30h / setmana</div>
+    </header>
+
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="card">
+            <h2 id="form-title">Registrar Dia</h2>
+            <form id="hours-form">
+                <div class="form-group">
+                    <label for="date">Data</label>
+                    <input type="date" id="date" required>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="rest_day">
+                    <label for="rest_day" style="font-weight: 600; font-size: 0.9rem; cursor:pointer;">Marcar com a dia de descans</label>
+                </div>
+
+                <div id="shifts-container">
+                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">Torn 1</p>
+                    <div class="shift-row">
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted)">Entrada</label>
+                            <input type="time" id="start_1">
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted)">Sortida</label>
+                            <input type="time" id="end_1">
+                        </div>
+                    </div>
+
+                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">Torn 2 (Opcional)</p>
+                    <div class="shift-row">
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted)">Entrada</label>
+                            <input type="time" id="start_2">
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted)">Sortida</label>
+                            <input type="time" id="end_2">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" style="margin-top: 10px;">Desar Registre</button>
+                <div id="toast" class="toast-notification">Dades desades correctament!</div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Balanç de la Setmana</h2>
+            <div class="summary-box">
+                <div class="stat-card">
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Hores Fetes</div>
+                    <div class="value" id="total-hours">0h</div>
+                </div>
+                <div class="stat-card" id="balance-card">
+                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="balance-label">Estat</div>
+                    <div class="value" id="balance-value">-</div>
+                </div>
+            </div>
+            <div id="financial-impact" style="font-size: 0.9rem; text-align: center; font-weight: 600;"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="calendar-header">
+            <h2 id="calendar-month-year" style="margin: 0; border: none; padding: 0;">Juny 2026</h2>
+            <div style="display:flex; gap: 5px;">
+                <button onclick="changeMonth(-1)" style="padding: 5px 10px; font-size: 0.9rem; width: auto;"><</button>
+                <button onclick="changeMonth(1)" style="padding: 5px 10px; font-size: 0.9rem; width: auto;">></button>
+            </div>
+        </div>
+
+        <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+</div>
+
+<script>
+    // TEST DE SEGURETAT DE LOCALSTORAGE
+    let storageAvailable = true;
+    try {
+        localStorage.setItem('__test__', '1');
+        localStorage.removeItem('__test__');
+    } catch (e) {
+        storageAvailable = false;
+        document.getElementById('security-warning').style.display = 'block';
+    }
+
+    function getLocalDateString(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    // Càrrega segura tolerants a fallades de seguretat local
+    let workData = {};
+    if (storageAvailable) {
+        workData = JSON.parse(localStorage.getItem('work_hours_data')) || {};
+    }
+
+    if (Object.keys(workData).length === 0) {
+        workData = {
+            "2026-06-10": { restDay: false, s1_in: "11:30", s1_out: "17:15", s2_in: "", s2_out: "" },
+            "2026-06-12": { restDay: false, s1_in: "12:00", s1_out: "16:30", s2_in: "20:00", s2_out: "01:30" }
+        };
+        if (storageAvailable) localStorage.setItem('work_hours_data', JSON.stringify(workData));
+    }
+
+    let currentDisplayDate = new Date(2026, 5, 13);
+
+    const form = document.getElementById('hours-form');
+    const dateInput = document.getElementById('date');
+    const restDayCheckbox = document.getElementById('rest_day');
+    const shiftsContainer = document.getElementById('shifts-container');
+    const calendarGrid = document.getElementById('calendar-grid');
+    const calendarTitle = document.getElementById('calendar-month-year');
+    const toast = document.getElementById('toast');
+
+    dateInput.value = getLocalDateString(currentDisplayDate);
+
+    restDayCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            shiftsContainer.style.opacity = '0.2';
+            shiftsContainer.style.pointerEvents = 'none';
+        } else {
+            shiftsContainer.style.opacity = '1';
+            shiftsContainer.style.pointerEvents = 'auto';
+        }
+    });
+
+    function calculateShiftHours(start, end) {
+        if (!start || !end) return 0;
+        let [hStart, mStart] = start.split(':').map(Number);
+        let [hEnd, mEnd] = end.split(':').map(Number);
+
+        let startMinutes = hStart * 60 + mStart;
+        let endMinutes = hEnd * 60 + mEnd;
+
+        if (endMinutes < startMinutes) {
+            endMinutes += 24 * 60;
+        }
+
+        return (endMinutes - startMinutes) / 60;
+    }
+
+    function getDayTotalHours(dayData) {
+        if (!dayData || dayData.restDay) return 0;
+        return calculateShiftHours(dayData.s1_in, dayData.s1_out) + calculateShiftHours(dayData.s2_in, dayData.s2_out);
+    }
+
+    function getWeekRange(dateStr) {
+        const parts = dateStr.split('-');
+        let date = new Date(parts[0], parts[1] - 1, parts[2]);
+        let day = date.getDay();
+        let diff = date.getDate() - day + (day === 0 ? -6 : 1);
+
+        let monday = new Date(parts[0], parts[1] - 1, diff);
+        let weekDays = [];
+        for (let i = 0; i < 7; i++) {
+            let d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+            weekDays.push(getLocalDateString(d));
+        }
+        return weekDays;
+    }
+
+    function updateWeeklySummary() {
+        const selectedDateStr = dateInput.value;
+        const weekDays = getWeekRange(selectedDateStr);
+
+        let totalHours = 0;
+        weekDays.forEach(dateStr => {
+            if (workData[dateStr]) {
+                totalHours += getDayTotalHours(workData[dateStr]);
+            }
+        });
+
+        document.getElementById('total-hours').innerText = totalHours.toFixed(2) + "h";
+
+        const balanceCard = document.getElementById('balance-card');
+        const balanceLabel = document.getElementById('balance-label');
+        const balanceValue = document.getElementById('balance-value');
+        const financialImpact = document.getElementById('financial-impact');
+
+        const contractHours = 30;
+        const extraHourRate = 12;
+
+        balanceCard.className = "stat-card";
+
+        if (totalHours >= contractHours) {
+            let extraHours = totalHours - contractHours;
+            balanceLabel.innerText = "Hores Extra";
+            balanceValue.innerText = "+" + extraHours.toFixed(2) + "h";
+            balanceCard.classList.add('alert-success');
+
+            let money = extraHours * extraHourRate;
+            financialImpact.innerText = `Et deuen en hores extres: +${money.toFixed(2)}€`;
+            financialImpact.style.color = "var(--success)";
+        } else {
+            let owedHours = contractHours - totalHours;
+            balanceLabel.innerText = "Hores mancants";
+            balanceValue.innerText = "-" + owedHours.toFixed(2) + "h";
+            balanceCard.classList.add('alert-danger');
+
+            financialImpact.innerText = `Balanç setmanal per sota del contracte (30h).`;
+            financialImpact.style.color = "var(--danger)";
+        }
+    }
+
+    function renderCalendar() {
+        calendarGrid.innerHTML = '';
+        const year = currentDisplayDate.getFullYear();
+        const month = currentDisplayDate.getMonth();
+
+        const monthNames = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
+        calendarTitle.innerText = `${monthNames[month]} ${year}`;
+
+        const daysOfWeek = ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg'];
+        daysOfWeek.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'weekday';
+            el.innerText = d;
+            calendarGrid.appendChild(el);
+        });
+
+        let firstDayIndex = new Date(year, month, 1).getDay();
+        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+        const totalDays = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < firstDayIndex; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'day-cell empty';
+            calendarGrid.appendChild(emptyCell);
+        }
+
+        for (let
