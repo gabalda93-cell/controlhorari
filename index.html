@@ -2,26 +2,69 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Control Horari Laboral</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Can Soler — Control Horari</title>
+
+    <!-- CONFIGURACIÓ NATIVA IPHONE (iOS PWA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Horari">
-    
+    <meta name="apple-mobile-web-app-title" content="Can Soler">
+
+    <!-- ICONA DE L'ESCRIPTORI (🍽️) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🍽️</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🍽️</text></svg>">
+
     <style>
+        /* PALETES DE COLORS EXCLUSIVES (INSPIRACIÓ CARTA DE MENÚ DE LUXE) */
         :root {
-            --bg-body: #f4f5f7;
+            --bg-system: #f6f1eb;
             --bg-card: #ffffff;
-            --text-main: #2d3748;
-            --text-muted: #718096;
-            --border: #e2e8f0;
-            --primary: #4a5568;
-            --primary-light: #edf2f7;
-            --success: #48bb78;
-            --danger: #f56565;
-            --warning-bg: #feebc8;
-            --warning-text: #c05621;
+            --text-main: #2a1b15;
+            --text-muted: #7c685c;
+            --separator: #f1e8de;
+            --input-bg: #faf7f2;
+            --input-border: #dfd5c6;
+            --gold: #b38b4d;
+
+            --soler-gradient: linear-gradient(135deg, #422312, #80593f, #b38b4d);
+            --soler-glow: linear-gradient(90deg, #2a1b15, #6b4c35, #b38b4d);
+
+            --cal-worked-bg: #f9f2e2;
+            --cal-worked-text: #664614;
+            --cal-worked-border: #e6d3af;
+
+            --cal-rest-bg: #e9e2d7;
+            --cal-rest-text: #4e453c;
+            --cal-rest-border: #d4c8b8;
+
+            --cal-missing-bg: #ffffff;
+            --cal-missing-border: #a39382;
+            --shadow-opacity: 0.05;
+        }
+
+        body.dark-mode {
+            --bg-system: #130d0b;
+            --bg-card: #1c1412;
+            --text-main: #f3ece4;
+            --text-muted: #9e8a7d;
+            --separator: #281d1a;
+            --input-bg: #160e0d;
+            --input-border: #3b2c28;
+            --gold: #d4af37;
+
+            --soler-glow: linear-gradient(90deg, #f3ece4, #cca47c, #b38b4d);
+
+            --cal-worked-bg: #362615;
+            --cal-worked-text: #fdf5e2;
+            --cal-worked-border: #573a1c;
+
+            --cal-rest-bg: #261d1b;
+            --cal-rest-text: #9e8a7d;
+            --cal-rest-border: #362927;
+
+            --cal-missing-bg: #18100f;
+            --cal-missing-border: #5c4a45;
+            --shadow-opacity: 0.25;
         }
 
         * {
@@ -29,348 +72,678 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, .brand-font {
+            font-family: "Georgia", "Playfair Display", serif;
         }
 
         body {
-            background-color: var(--bg-body);
+            background-color: var(--bg-system);
             color: var(--text-main);
-            padding: 20px;
+            padding: calc(24px + env(safe-area-inset-top)) 16px 40px 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Evita rebots estranys en fer scroll a iOS */
-            overflow-x: hidden; 
+            overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        .error-banner {
-            display: none;
-            width: 100%;
-            max-width: 1000px;
-            background: var(--warning-bg);
-            color: var(--warning-text);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border: 1px solid #fbd38d;
-            text-align: center;
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(at 0% 0%, rgba(179, 139, 77, 0.15) 0px, transparent 60%),
+                        radial-gradient(at 100% 100%, rgba(66, 35, 18, 0.15) 0px, transparent 60%);
+            z-index: -1;
+            pointer-events: none;
         }
 
         .app-container {
             width: 100%;
-            max-width: 1000px;
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
         }
 
-        @media (max-width: 768px) {
-            .app-container {
-                grid-template-columns: 1fr;
-            }
-            .app-container > div:nth-child(2) {
-                grid-row: 1; /* El calendari primer a mòbils */
-            }
+        .brand-header-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            padding: 10px 0 4px 0;
         }
 
-        header {
-            grid-column: 1 / -1;
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        .brand-logo-svg {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 12px;
+            fill: none;
+            stroke: var(--gold);
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.3s ease;
+        }
+        .brand-logo-svg:active {
+            transform: scale(0.95) rotate(-5deg);
+        }
+
+        .brand-header-block h1 {
+            font-size: 2.3rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+            line-height: 1.1;
+        }
+
+        .brand-location {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--gold);
+            font-weight: 700;
+            margin-top: 2px;
+            margin-bottom: 6px;
+        }
+
+        .brand-divider {
+            width: 40px;
+            height: 1px;
+            background: var(--gold);
+            margin: 6px 0;
+            opacity: 0.5;
+        }
+
+        .brand-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .top-action-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
+            padding: 0 4px;
         }
 
-        header h1 {
-            font-size: 1.5rem;
-            color: var(--primary);
+        .theme-toggle-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--input-border);
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            transition: all 0.2s;
         }
 
         .contract-badge {
-            background: var(--primary-light);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .card {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            position: relative;
-        }
-
-        .card h2 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary-light);
-            padding-bottom: 8px;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        input[type="date"], input[type="time"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.8rem;
             color: var(--text-main);
-            background: var(--bg-body);
-            -webkit-appearance: none; /* Força estil net a iOS */
+            background: var(--bg-card);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            box-shadow: 0 4px 12px rgba(62, 39, 35, 0.04);
+            border: 1px solid var(--input-border);
         }
 
-        .checkbox-group {
+        .ios-group {
+            background: var(--bg-card);
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid var(--input-border);
+            box-shadow: 0 12px 35px rgba(62, 39, 35, var(--shadow-opacity));
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .ios-group-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-main);
+            margin-left: 6px;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            font-weight: 800;
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin: 18px 0;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            -webkit-appearance: checkbox;
-        }
-
-        .shift-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 10px;
-            background: var(--primary-light);
-            padding: 10px;
-            border-radius: 8px;
         }
 
-        .btn-desar {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: 600;
+        .ios-group-title::before {
+            content: "•";
+            color: var(--gold);
+            font-size: 1.3rem;
+            display: inline-block;
+            line-height: 0;
+        }
+
+        .ios-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--separator);
+        }
+
+        .ios-row:last-child {
+            border-bottom: none;
+        }
+
+        input[type="date"], input[type="time"], input[type="number"] {
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            text-align: right;
+            font-weight: 700;
+            outline: none;
+            transition: all 0.2s;
             -webkit-appearance: none;
         }
 
-        .summary-box {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+        input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
+            border-color: var(--gold);
+            background: var(--bg-card);
+            box-shadow: 0 0 0 3px rgba(179, 139, 77, 0.15);
         }
 
-        .stat-card {
-            background: var(--primary-light);
-            padding: 15px;
-            border-radius: 8px;
+        input[type="number"] {
+            width: 110px;
+        }
+
+        input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 52px; height: 28px;
+            background-color: var(--input-border);
+            border-radius: 14px;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        input[type="checkbox"]:checked {
+            background: var(--soler-gradient);
+        }
+
+        input[type="checkbox"]::after {
+            content: "";
+            position: absolute;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background-color: white;
+            top: 2px; left: 2px;
+            transition: transform 0.2s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        input[type="checkbox"]:checked::after {
+            transform: translateX(24px);
+        }
+
+        .btn-secondary-ios {
+            background: none; border: none;
+            color: var(--gold);
+            font-size: 0.95rem; font-weight: 700;
+            cursor: pointer; padding: 4px 8px;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        #second-shift-container {
+            border-top: 1px solid var(--separator);
+            background: rgba(179, 139, 77, 0.02);
+        }
+
+        .shift-section-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            padding: 16px 20px 6px 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-soler {
+            width: 100%;
+            padding: 18px;
+            background: var(--soler-gradient);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(66, 35, 18, 0.25);
+            transition: transform 0.1s, box-shadow 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .btn-soler:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 12px rgba(66, 35, 18, 0.2);
+        }
+
+        .ios-balance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 22px 0;
             text-align: center;
         }
 
-        .stat-card .value {
-            font-size: 1.6rem;
-            font-weight: bold;
-            margin-top: 5px;
+        .balance-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .stat-card.alert-success .value { color: var(--success); }
-        .stat-card.alert-danger .value { color: var(--danger); }
+        .balance-item:first-child {
+            border-right: 1px solid var(--separator);
+        }
+
+        .balance-item .lbl {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .balance-item .val {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .progress-bar-container {
+            padding: 0 20px 20px 20px;
+        }
+        .progress-track {
+            width: 100%; height: 8px;
+            background: var(--separator);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; width: 0%;
+            background: var(--soler-gradient);
+            border-radius: 4px;
+            transition: width 0.4s ease-out;
+        }
 
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            padding: 0 4px 12px 4px;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .cal-nav-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--input-border);
+            font-size: 1.1rem;
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 8px;
+            padding: 18px;
+            background: #ffffff;
+        }
+
+        body.dark-mode .calendar-grid {
+            background: var(--bg-card);
         }
 
         .weekday {
             text-align: center;
-            font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 800;
             color: var(--text-muted);
-            padding-bottom: 5px;
+            padding-bottom: 8px;
         }
 
         .day-cell {
             aspect-ratio: 1;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 4px;
+            border-radius: 14px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            background: #fff;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            position: relative;
             cursor: pointer;
-            -webkit-tap-highlight-color: transparent; /* Elimina flaix blau a iOS */
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.02);
+            background-color: var(--cal-missing-bg);
+            border: 2px dashed var(--cal-missing-border);
+            color: var(--text-main);
         }
 
-        .day-cell .day-num {
-            font-size: 0.85rem;
-            font-weight: 600;
+        .day-cell:active {
+            transform: scale(0.92);
         }
 
-        .day-cell .day-hours {
-            font-size: 0.75rem;
-            text-align: center;
-            background: var(--primary-light);
-            border-radius: 4px;
-            padding: 2px 0;
-            font-weight: 600;
-        }
-
-        .day-cell.empty {
-            background: transparent;
-            border: none;
+        .day-cell.worked {
+            background-color: var(--cal-worked-bg);
+            border: 2px solid var(--cal-worked-border);
+            color: var(--cal-worked-text);
         }
 
         .day-cell.rest {
-            background: #edf2f7;
-            color: var(--text-muted);
+            background-color: var(--cal-rest-bg);
+            border: 2px solid var(--cal-rest-border);
+            color: var(--cal-rest-text);
         }
 
-        .day-cell.rest .day-hours {
-            background: transparent;
-            color: var(--text-muted);
+        .day-cell .hours-label {
+            font-size: 0.6rem;
+            font-weight: 800;
+            position: absolute;
+            bottom: 4px;
+            text-transform: uppercase;
         }
-        
+
         .day-cell.current-selection {
-            border: 2px solid var(--primary);
-            background-color: #fafafa;
+            background: var(--soler-gradient) !important;
+            color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 6px 18px rgba(96, 56, 19, 0.4);
+            transform: translateY(-2px);
+        }
+        .day-cell.current-selection .hours-label {
+            color: #ffffff !important;
         }
 
-        .toast-notification {
-            display: none;
-            background: var(--success);
-            color: white;
-            text-align: center;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
+        .day-cell.empty {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            cursor: default;
+        }
+
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            padding: 0 16px 18px 16px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: #ffffff;
+        }
+        body.dark-mode .calendar-legend { background: var(--bg-card); }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 4px; }
+
+        .wallet-value {
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: var(--soler-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .backup-footer {
+            display: flex;
+            justify-content: center;
+            gap: 22px;
             margin-top: 12px;
-            font-weight: 600;
+            padding: 0 4px;
+        }
+        .btn-link-backup {
+            background: none; border: none;
+            color: var(--text-muted);
+            font-size: 0.85rem; font-weight: 700;
+            text-decoration: none; cursor: pointer;
+            letter-spacing: 0.2px;
+        }
+
+        .ios-toast {
+            display: none;
+            position: fixed;
+            top: 24px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(42, 27, 21, 0.96);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 0.95rem; font-weight: 700;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+            z-index: 9999;
+            animation: iosSlideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes iosSlideDown {
+            from { transform: translate(-50%, -30px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+            }
+            body::before,
+            #editor-section,
+            .backup-footer,
+            .cal-nav-btn,
+            .theme-toggle-btn,
+            .calendar-legend,
+            #btn-pdf-trigger {
+                display: none !important;
+            }
+            .app-container {
+                max-width: 100% !important;
+                width: 100% !important;
+                gap: 25px !important;
+            }
+            .ios-group {
+                border: 1px solid #2a1b15 !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+                border-radius: 14px !important;
+            }
+            .day-cell {
+                border: 1px solid #cbd5e1 !important;
+                color: #0f172a !important;
+                background: #ffffff !important;
+                box-shadow: none !important;
+                border-radius: 8px !important;
+            }
+            .day-cell.worked { background-color: #f8fafc !important; }
+            .day-cell.rest { background-color: #f1f5f9 !important; color: #475569 !important; }
+            .day-cell.current-selection { background: transparent !important; color: #000000 !important; border: 2px solid #000000 !important;}
+            .day-cell.current-selection .hours-label { color: #000000 !important; }
+            .wallet-value {
+                background: none !important;
+                -webkit-text-fill-color: initial !important;
+                color: #000000 !important;
+            }
         }
     </style>
 </head>
 <body>
 
-<div id="security-warning" class="error-banner">
-    ⚠️ <strong>Atenció:</strong> El LocalStorage està desactivat o bloquejat.
-</div>
+<div id="toast" class="ios-toast">✓ Registrat correctament a Can Soler</div>
 
 <div class="app-container">
-    <header>
-        <h1>Control Horari</h1>
-        <div class="contract-badge">Contracte: 30h</div>
-    </header>
 
-    <div id="editor-section" style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="card">
-            <h2 id="form-title">Registrar Dia</h2>
-            <div class="pure-form">
-                <div class="form-group">
-                    <label for="date">Data Seleccionada</label>
-                    <input type="date" id="date">
-                </div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="rest_day">
-                    <label for="rest_day" style="font-weight: 600; font-size: 0.9rem; cursor:pointer;">Dia de descans</label>
-                </div>
-
-                <div id="shifts-container">
-                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">Torn 1</p>
-                    <div class="shift-row">
-                        <div>
-                            <label style="font-size:0.75rem; color:var(--text-muted)">Entrada</label>
-                            <input type="time" id="start_1">
-                        </div>
-                        <div>
-                            <label style="font-size:0.75rem; color:var(--text-muted)">Sortida</label>
-                            <input type="time" id="end_1">
-                        </div>
-                    </div>
-
-                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">Torn 2 (Opcional)</p>
-                    <div class="shift-row">
-                        <div>
-                            <label style="font-size:0.75rem; color:var(--text-muted)">Entrada</label>
-                            <input type="time" id="start_2">
-                        </div>
-                        <div>
-                            <label style="font-size:0.75rem; color:var(--text-muted)">Sortida</label>
-                            <input type="time" id="end_2">
-                        </div>
-                    </div>
-                </div>
-
-                <button type="button" class="btn-desar" id="btn-save-trigger">Desar Registre</button>
-                <div id="toast" class="toast-notification">✓ Desar correctament</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Balanç Setmanal</h2>
-            <div class="summary-box">
-                <div class="stat-card">
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Hores Fetes</div>
-                    <div class="value" id="total-hours">0h</div>
-                </div>
-                <div class="stat-card" id="balance-card">
-                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="balance-label">Estat</div>
-                    <div class="value" id="balance-value">-</div>
-                </div>
-            </div>
-            <div id="financial-impact" style="font-size: 0.9rem; text-align: center; font-weight: 600;"></div>
-        </div>
+    <div class="brand-header-block">
+        <svg class="brand-logo-svg" viewBox="0 0 100 100">
+            <path d="M35 25 v25 c0 8 5 12 10 12 v18 h10 v-18 c5 0 10-4 10-12 v-25 M40 25 v12 M45 25 v12 M50 25 v12 M55 25 v12 M60 25 v12" />
+            <path d="M65 25 c2 0 4 5 4 15 c0 8-2 15-4 15 v25 h-5 v-25" />
+            <circle cx="50" cy="50" r="46" stroke-dasharray="4 4" opacity="0.4"/>
+        </svg>
+        <h1>CAN SOLER</h1>
+        <div class="brand-location">Sant Celoni</div>
+        <div class="brand-divider"></div>
+        <div class="brand-subtitle">Registre Horari Laboral</div>
     </div>
 
-    <div class="card">
+    <div class="top-action-bar">
+        <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()">🌙</button>
+        <div class="contract-badge">Base: 30h setmanals</div>
+    </div>
+
+    <!-- 1. GRAELLA CALENDARI -->
+    <div>
         <div class="calendar-header">
-            <h2 id="calendar-month-year" style="margin: 0; border: none; padding: 0;">Juny 2026</h2>
-            <div style="display:flex; gap: 8px;">
-                <button onclick="changeMonth(-1)" style="padding: 6px 12px; font-size: 0.9rem; width: auto; background: var(--primary-light); color: var(--text-main); font-weight: bold; border:none; border-radius:6px;"><</button>
-                <button onclick="changeMonth(1)" style="padding: 6px 12px; font-size: 0.9rem; width: auto; background: var(--primary-light); color: var(--text-main); font-weight: bold; border:none; border-radius:6px;">></button>
+            <h2 id="calendar-month-year">Juny 2026</h2>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button type="button" class="cal-nav-btn" id="btn-pdf-trigger" onclick="exportToPDF()" style="font-size:0.85rem; padding: 6px 12px; border-color:var(--gold); color:var(--gold);">📄 Generar PDF</button>
+                <button class="cal-nav-btn" onclick="changeMonth(-1)">&lt;</button>
+                <button class="cal-nav-btn" onclick="changeMonth(1)">&gt;</button>
             </div>
         </div>
-        
-        <div class="calendar-grid" id="calendar-grid"></div>
+
+        <div class="ios-group">
+            <div class="calendar-grid" id="calendar-grid"></div>
+
+            <div class="calendar-legend">
+                <div class="legend-item"><div class="legend-dot" style="background: var(--cal-worked-bg); border: 1px solid var(--cal-worked-border);"></div>Fet</div>
+                <div class="legend-item"><div class="legend-dot" style="background: var(--cal-rest-bg); border: 1px solid var(--cal-rest-border);"></div>Descans</div>
+                <div class="legend-item"><div class="legend-dot" style="border: 2px dashed var(--cal-missing-border); background: var(--bg-card)"></div>Buit</div>
+            </div>
+        </div>
     </div>
+
+    <!-- 2. HISTORIAL COMPTABLE TOTAL ACUMULAT -->
+    <div>
+        <div class="ios-group-title">Historial de Comptes Generals</div>
+        <div class="ios-group">
+            <div class="ios-balance-grid">
+                <div class="balance-item">
+                    <span class="lbl">Hores Extres Totals</span>
+                    <span class="val" id="global-accumulated-hours" style="color: var(--gold);">0h</span>
+                </div>
+                <div class="balance-item">
+                    <span class="lbl">Falta per pagar</span>
+                    <span class="wallet-value" id="global-pending-money">0.00€</span>
+                </div>
+            </div>
+
+            <div class="ios-row">
+                <label style="font-size: 0.95rem; font-weight: 600; color: var(--text-muted);">M'han pagat (€)</label>
+                <input type="number" id="input-global-paid" step="any" placeholder="0.00">
+            </div>
+            <div class="ios-row">
+                <label style="font-size: 0.95rem; font-weight: 600; color: var(--text-muted);">Retorn d'hores (h lliures)</label>
+                <input type="number" id="input-global-returned" step="any" placeholder="0.0">
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. BALANÇ SETMANAL -->
+    <div>
+        <div class="ios-group-title">Balanç d'aquesta Setmana</div>
+        <div class="ios-group">
+            <div class="ios-balance-grid">
+                <div class="balance-item">
+                    <span class="lbl">Hores Fetes</span>
+                    <span class="val" id="total-hours">0h</span>
+                </div>
+                <div class="balance-item">
+                    <span class="lbl" id="balance-label">Estat</span>
+                    <span class="val" id="balance-value">-</span>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-track">
+                    <div id="week-progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. FORMULARI REGISTRE JORNADA -->
+    <div id="editor-section">
+        <div class="ios-group-title" id="form-title">Registrar Horari</div>
+        <div class="ios-group">
+            <div class="ios-row">
+                <label style="font-weight: 600;">Data de treball</label>
+                <input type="date" id="date">
+            </div>
+
+            <div class="ios-row">
+                <label style="font-weight: 600;">Marcar com a descans</label>
+                <input type="checkbox" id="rest_day">
+            </div>
+
+            <div id="shifts-container">
+                <div class="ios-row">
+                    <label style="font-weight: 600;">Entrada</label>
+                    <input type="time" id="start_1">
+                </div>
+                <div class="ios-row">
+                    <label style="font-weight: 600;">Sortida</label>
+                    <input type="time" id="end_1">
+                </div>
+
+                <div class="ios-row" id="split-trigger-row" style="background: rgba(179,139,77,0.02);">
+                    <label style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Tipus de jornada</label>
+                    <button type="button" class="btn-secondary-ios" id="btn-add-split">+ Afegir torn partit</button>
+                </div>
+
+                <div id="second-shift-container" style="display: none;">
+                    <div class="shift-section-title">Segona Tanda</div>
+                    <div class="ios-row">
+                        <label style="color: var(--text-muted);">Entrada 2</label>
+                        <input type="time" id="start_2">
+                    </div>
+                    <div class="ios-row">
+                        <label style="color: var(--text-muted);">Sortida 2</label>
+                        <input type="time" id="end_2">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn-soler" id="btn-save-trigger" style="margin-top: 16px;">Desar registre</button>
+    </div>
+
+    <!-- 5. SISTEMA DE SEGURETAT DE DADES -->
+    <footer class="backup-footer">
+        <button type="button" class="btn-link-backup" onclick="exportData()">📥 Còpia de seguretat</button>
+        <button type="button" class="btn-link-backup" onclick="importData()">📤 Carregar còpia</button>
+    </footer>
+
 </div>
 
 <script>
     let storageAvailable = true;
     try {
-        localStorage.setItem('__test_ios__', '1');
-        localStorage.removeItem('__test_ios__');
+        localStorage.setItem('__test_soler_v6__', '1');
+        localStorage.removeItem('__test_soler_v6__');
     } catch (e) {
         storageAvailable = false;
-        document.getElementById('security-warning').style.display = 'block';
     }
 
     function getLocalDateString(dateObj) {
@@ -381,38 +754,86 @@
     }
 
     let workData = {};
+    let globalPaid = 0;
+    let globalReturnedHours = 0;
+    let hasSplitActive = false;
+    let activeTheme = 'light';
+
     if (storageAvailable) {
-        workData = JSON.parse(localStorage.getItem('work_hours_data')) || {};
+        workData = JSON.parse(localStorage.getItem('work_hours_soler_v6')) || {};
+        globalPaid = parseFloat(localStorage.getItem('global_paid_v6')) || 0;
+        globalReturnedHours = parseFloat(localStorage.getItem('global_returned_hours_v6')) || 0;
+        activeTheme = localStorage.getItem('theme_soler_v6') || 'light';
     }
 
-    if (Object.keys(workData).length === 0) {
-        workData = {
-            "2026-06-10": { restDay: false, s1_in: "11:30", s1_out: "17:15", s2_in: "", s2_out: "" },
-            "2026-06-12": { restDay: false, s1_in: "12:00", s1_out: "16:30", s2_in: "20:00", s2_out: "01:30" }
-        };
-        if (storageAvailable) localStorage.setItem('work_hours_data', JSON.stringify(workData));
+    if (activeTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('theme-toggle-btn').innerText = '☀️';
     }
 
-    let currentDisplayDate = new Date(2026, 5, 13); 
+    let currentDisplayDate = new Date(2026, 5, 13);
 
     const dateInput = document.getElementById('date');
     const restDayCheckbox = document.getElementById('rest_day');
     const shiftsContainer = document.getElementById('shifts-container');
+    const secondShiftContainer = document.getElementById('second-shift-container');
+    const btnAddSplit = document.getElementById('btn-add-split');
+
     const calendarGrid = document.getElementById('calendar-grid');
     const calendarTitle = document.getElementById('calendar-month-year');
     const toast = document.getElementById('toast');
     const saveButton = document.getElementById('btn-save-trigger');
 
+    const inputGlobalPaid = document.getElementById('input-global-paid');
+    const inputGlobalReturned = document.getElementById('input-global-returned');
+
+    inputGlobalPaid.value = globalPaid > 0 ? globalPaid : "";
+    inputGlobalReturned.value = globalReturnedHours > 0 ? globalReturnedHours : "";
+
     dateInput.value = getLocalDateString(currentDisplayDate);
 
-    restDayCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            shiftsContainer.style.opacity = '0.2';
-            shiftsContainer.style.pointerEvents = 'none';
+    function toggleTheme() {
+        if (document.body.classList.contains('dark-mode')) {
+            document.body.classList.remove('dark-mode');
+            document.getElementById('theme-toggle-btn').innerText = '🌙';
+            activeTheme = 'light';
         } else {
-            shiftsContainer.style.opacity = '1';
-            shiftsContainer.style.pointerEvents = 'auto';
+            document.body.classList.add('dark-mode');
+            document.getElementById('theme-toggle-btn').innerText = '☀️';
+            activeTheme = 'dark';
         }
+        if (storageAvailable) localStorage.setItem('theme_soler_v6', activeTheme);
+    }
+
+    function exportToPDF() {
+        window.print();
+    }
+
+    btnAddSplit.addEventListener('click', function() {
+        if (!hasSplitActive) { showSecondShiftFields(); } else { hideSecondShiftFields(); cleanSecondShiftFields(); }
+    });
+
+    function showSecondShiftFields() {
+        secondShiftContainer.style.display = 'block';
+        btnAddSplit.innerText = "✕ Eliminar torn partit";
+        btnAddSplit.style.color = "#c23a3a";
+        hasSplitActive = true;
+    }
+
+    function hideSecondShiftFields() {
+        secondShiftContainer.style.display = 'none';
+        btnAddSplit.innerText = "+ Afegir torn partit";
+        btnAddSplit.style.color = "var(--gold)";
+        hasSplitActive = false;
+    }
+
+    function cleanSecondShiftFields() {
+        document.getElementById('start_2').value = "";
+        document.getElementById('end_2').value = "";
+    }
+
+    restDayCheckbox.addEventListener('change', function() {
+        if (this.checked) { shiftsContainer.style.display = 'none'; } else { shiftsContainer.style.display = 'block'; }
     });
 
     function calculateShiftHours(start, end) {
@@ -421,13 +842,21 @@
         let [hEnd, mEnd] = end.split(':').map(Number);
         let startMinutes = hStart * 60 + mStart;
         let endMinutes = hEnd * 60 + mEnd;
-        if (endMinutes < startMinutes) endMinutes += 24 * 60; 
+        if (endMinutes < startMinutes) endMinutes += 24 * 60;
         return (endMinutes - startMinutes) / 60;
     }
 
     function getDayTotalHours(dayData) {
         if (!dayData || dayData.restDay) return 0;
         return calculateShiftHours(dayData.s1_in, dayData.s1_out) + calculateShiftHours(dayData.s2_in, dayData.s2_out);
+    }
+
+    function getMondayKey(dateStr) {
+        const parts = dateStr.split('-');
+        let d = new Date(parts[0], parts[1] - 1, parts[2]);
+        let day = d.getDay();
+        let diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return getLocalDateString(new Date(parts[0], parts[1] - 1, diff));
     }
 
     function getWeekRange(dateStr) {
@@ -444,6 +873,30 @@
         return weekDays;
     }
 
+    function updateGlobalAccounting() {
+        let weeklyGroups = {};
+
+        Object.keys(workData).forEach(dateStr => {
+            let monKey = getMondayKey(dateStr);
+            let hours = getDayTotalHours(workData[dateStr]);
+            weeklyGroups[monKey] = (weeklyGroups[monKey] || 0) + hours;
+        });
+
+        let totalExtraHoursGenerated = 0;
+        Object.keys(weeklyGroups).forEach(monKey => {
+            if (weeklyGroups[monKey] > 30) { totalExtraHoursGenerated += (weeklyGroups[monKey] - 30); }
+        });
+
+        let totalMoneyEarned = totalExtraHoursGenerated * 12;
+        let moneyDeductedByHours = globalReturnedHours * 12;
+        let finalPendingMoney = totalMoneyEarned - globalPaid - moneyDeductedByHours;
+
+        if (finalPendingMoney < 0) finalPendingMoney = 0;
+
+        document.getElementById('global-accumulated-hours').innerText = totalExtraHoursGenerated.toFixed(1) + "h";
+        document.getElementById('global-pending-money').innerText = finalPendingMoney.toFixed(2) + "€";
+    }
+
     function updateWeeklySummary() {
         const selectedDateStr = dateInput.value;
         const weekDays = getWeekRange(selectedDateStr);
@@ -452,26 +905,25 @@
             if (workData[dateStr]) totalHours += getDayTotalHours(workData[dateStr]);
         });
 
-        document.getElementById('total-hours').innerText = totalHours.toFixed(2) + "h";
-        const balanceCard = document.getElementById('balance-card');
+        document.getElementById('total-hours').innerText = totalHours.toFixed(1) + "h";
         const balanceLabel = document.getElementById('balance-label');
         const balanceValue = document.getElementById('balance-value');
-        const financialImpact = document.getElementById('financial-impact');
-        
+
+        const progressFill = document.getElementById('week-progress-fill');
+        let percentage = (totalHours / 30) * 100;
+        if (percentage > 100) percentage = 100;
+        progressFill.style.width = percentage + "%";
+
         if (totalHours >= 30) {
             let extraHours = totalHours - 30;
-            balanceLabel.innerText = "Hores Extra";
-            balanceValue.innerText = "+" + extraHours.toFixed(2) + "h";
-            balanceCard.className = "stat-card alert-success";
-            financialImpact.innerText = `Et deuen: +${(extraHours * 12).toFixed(2)}€`;
-            financialImpact.style.color = "var(--success)";
+            balanceLabel.innerText = "Extra Setmana";
+            balanceValue.innerText = "+" + extraHours.toFixed(1) + "h";
+            balanceValue.style.color = "var(--cal-worked-text)";
         } else {
             let owedHours = 30 - totalHours;
-            balanceLabel.innerText = "Hores mancants";
-            balanceValue.innerText = "-" + owedHours.toFixed(2) + "h";
-            balanceCard.className = "stat-card alert-danger";
-            financialImpact.innerText = `Balanç setmanal per sota de les 30h.`;
-            financialImpact.style.color = "var(--danger)";
+            balanceLabel.innerText = "Mancant";
+            balanceValue.innerText = "-" + owedHours.toFixed(1) + "h";
+            balanceValue.style.color = "var(--text-main)";
         }
     }
 
@@ -481,47 +933,44 @@
         const month = currentDisplayDate.getMonth();
         const monthNames = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
         calendarTitle.innerText = `${monthNames[month]} ${year}`;
-        
+
         ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg'].forEach(d => {
-            const el = document.createElement('div');
-            el.className = 'weekday'; el.innerText = d; calendarGrid.appendChild(el);
+            const el = document.createElement('div'); el.className = 'weekday'; el.innerText = d; calendarGrid.appendChild(el);
         });
-        
+
         let firstDayIndex = new Date(year, month, 1).getDay();
-        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; 
+        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
         const totalDays = new Date(year, month + 1, 0).getDate();
-        
+
         for (let i = 0; i < firstDayIndex; i++) {
-            const emptyCell = document.createElement('div');
-            emptyCell.className = 'day-cell empty'; calendarGrid.appendChild(emptyCell);
+            const emptyCell = document.createElement('div'); emptyCell.className = 'day-cell empty'; calendarGrid.appendChild(emptyCell);
         }
-        
+
         for (let day = 1; day <= totalDays; day++) {
             const cellDate = new Date(year, month, day);
             const dateStr = getLocalDateString(cellDate);
-            const cell = document.createElement('div');
-            cell.className = 'day-cell';
+            const cell = document.createElement('div'); cell.className = 'day-cell';
+
             if (dateStr === dateInput.value) cell.classList.add('current-selection');
-            
-            const dayNum = document.createElement('div');
-            dayNum.className = 'day-num'; dayNum.innerText = day; cell.appendChild(dayNum);
-            
+            cell.innerText = day;
+
             if (workData[dateStr]) {
                 if (workData[dateStr].restDay) {
                     cell.classList.add('rest');
-                    const text = document.createElement('div'); text.className = 'day-hours'; text.innerText = "Descans"; cell.appendChild(text);
+                    const label = document.createElement('div'); label.className = 'hours-label'; label.innerText = "Desc"; cell.appendChild(label);
                 } else {
                     let totalH = getDayTotalHours(workData[dateStr]);
                     if (totalH > 0) {
-                        const hoursLabel = document.createElement('div'); hoursLabel.className = 'day-hours'; hoursLabel.innerText = totalH.toFixed(1) + "h"; cell.appendChild(hoursLabel);
+                        cell.classList.add('worked');
+                        const label = document.createElement('div'); label.className = 'hours-label'; label.innerText = totalH.toFixed(1) + "h"; cell.appendChild(label);
                     }
                 }
             }
-            
+
             cell.addEventListener('click', () => {
                 dateInput.value = dateStr;
                 loadDateIntoForm(dateStr);
-                renderCalendar(); 
+                renderCalendar();
                 document.getElementById('editor-section').scrollIntoView({ behavior: 'smooth' });
             });
             calendarGrid.appendChild(cell);
@@ -529,8 +978,8 @@
     }
 
     function loadDateIntoForm(dateStr) {
-        const parts = dateStr.split('-');
-        document.getElementById('form-title').innerText = `Registrar: ${parts[2]}/${parts[1]}/${parts[0]}`;
+        hideSecondShiftFields();
+
         if (workData[dateStr]) {
             const d = workData[dateStr];
             restDayCheckbox.checked = d.restDay;
@@ -538,14 +987,28 @@
             document.getElementById('end_1').value = d.s1_out || "";
             document.getElementById('start_2').value = d.s2_in || "";
             document.getElementById('end_2').value = d.s2_out || "";
+
+            if (d.s2_in || d.s2_out) { showSecondShiftFields(); }
         } else {
             restDayCheckbox.checked = false;
             document.getElementById('start_1').value = ""; document.getElementById('end_1').value = "";
-            document.getElementById('start_2').value = ""; document.getElementById('end_2').value = "";
+            cleanSecondShiftFields();
         }
         restDayCheckbox.dispatchEvent(new Event('change'));
         updateWeeklySummary();
     }
+
+    inputGlobalPaid.addEventListener('input', function(e) {
+        globalPaid = parseFloat(e.target.value) || 0;
+        if (storageAvailable) localStorage.setItem('global_paid_v6', globalPaid);
+        updateGlobalAccounting();
+    });
+
+    inputGlobalReturned.addEventListener('input', function(e) {
+        globalReturnedHours = parseFloat(e.target.value) || 0;
+        if (storageAvailable) localStorage.setItem('global_returned_hours_v6', globalReturnedHours);
+        updateGlobalAccounting();
+    });
 
     dateInput.addEventListener('change', (e) => {
         const parts = e.target.value.split('-');
@@ -562,7 +1025,7 @@
     saveButton.addEventListener('click', function() {
         const selectedDate = dateInput.value;
         if(!selectedDate) return;
-        
+
         workData[selectedDate] = {
             restDay: restDayCheckbox.checked,
             s1_in: document.getElementById('start_1').value,
@@ -570,17 +1033,53 @@
             s2_in: document.getElementById('start_2').value,
             s2_out: document.getElementById('end_2').value
         };
-        
-        if (storageAvailable) localStorage.setItem('work_hours_data', JSON.stringify(workData));
+
+        if (storageAvailable) localStorage.setItem('work_hours_soler_v6', JSON.stringify(workData));
+
         renderCalendar();
         updateWeeklySummary();
-        
+        updateGlobalAccounting();
+
         toast.style.display = 'block';
         setTimeout(() => { toast.style.display = 'none'; }, 2000);
     });
 
+    function exportData() {
+        let backup = { workData, globalPaid, globalReturnedHours };
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+        let downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "BACKUP_CAN_SOLER.json");
+        document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+    }
+
+    function importData() {
+        let input = document.createElement('input'); input.type = 'file'; input.accept = '.json';
+        input.onchange = e => {
+            let file = e.target.files[0]; let reader = new FileReader(); reader.readAsText(file, 'UTF-8');
+            reader.onload = readerEvent => {
+                try {
+                    let content = JSON.parse(readerEvent.target.result);
+                    if (content.workData) {
+                        workData = content.workData; globalPaid = content.globalPaid || 0; globalReturnedHours = content.globalReturnedHours || 0;
+                        if (storageAvailable) {
+                            localStorage.setItem('work_hours_soler_v6', JSON.stringify(workData));
+                            localStorage.setItem('global_paid_v6', globalPaid);
+                            localStorage.setItem('global_returned_hours_v6', globalReturnedHours);
+                        }
+                        inputGlobalPaid.value = globalPaid > 0 ? globalPaid : "";
+                        inputGlobalReturned.value = globalReturnedHours > 0 ? globalReturnedHours : "";
+                        loadDateIntoForm(dateInput.value); renderCalendar(); updateGlobalAccounting();
+                    }
+                } catch(err) { alert("Error: Fitxer invàlid."); }
+            }
+        }
+        input.click();
+    }
+
     loadDateIntoForm(dateInput.value);
     renderCalendar();
+    updateGlobalAccounting();
 </script>
 
 </body>
