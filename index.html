@@ -4,61 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Can Soler — Control Horari</title>
-    
+
     <!-- CONFIGURACIÓ NATIVA IPHONE (iOS PWA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Can Soler">
-    
+
+    <!-- ICONA DE L'ESCRIPTORI (🍽️) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🍽️</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🍽️</text></svg>">
+
     <style>
         :root {
-            --bg-system: #f6f1eb; 
+            --bg-system: #f6f1eb;
             --bg-card: #ffffff;
-            --text-main: #2a1b15; 
-            --text-muted: #7c685c; 
+            --text-main: #2a1b15;
+            --text-muted: #7c685c;
             --separator: #f1e8de;
             --input-bg: #faf7f2;
             --input-border: #dfd5c6;
-            --gold: #b38b4d; 
-            
+            --gold: #b38b4d;
+
             --soler-gradient: linear-gradient(135deg, #422312, #80593f, #b38b4d);
             --soler-glow: linear-gradient(90deg, #2a1b15, #6b4c35, #b38b4d);
-            
-            --cal-worked-bg: #f9f2e2; 
+
+            --cal-worked-bg: #f9f2e2;
             --cal-worked-text: #664614;
             --cal-worked-border: #e6d3af;
-            
-            --cal-rest-bg: #e9e2d7; 
+
+            --cal-rest-bg: #e9e2d7;
             --cal-rest-text: #4e453c;
             --cal-rest-border: #d4c8b8;
-            
+
             --cal-missing-bg: #ffffff;
-            --cal-missing-border: #a39382; 
+            --cal-missing-border: #a39382;
             --shadow-opacity: 0.05;
         }
 
         body.dark-mode {
-            --bg-system: #130d0b; 
+            --bg-system: #130d0b;
             --bg-card: #1c1412;
-            --text-main: #f3ece4; 
-            --text-muted: #9e8a7d; 
+            --text-main: #f3ece4;
+            --text-muted: #9e8a7d;
             --separator: #281d1a;
             --input-bg: #160e0d;
             --input-border: #3b2c28;
             --gold: #d4af37;
-            
+
             --soler-glow: linear-gradient(90deg, #f3ece4, #cca47c, #b38b4d);
-            
-            --cal-worked-bg: #362615; 
+
+            --cal-worked-bg: #362615;
             --cal-worked-text: #fdf5e2;
             --cal-worked-border: #573a1c;
-            
-            --cal-rest-bg: #261d1b; 
+
+            --cal-rest-bg: #261d1b;
             --cal-rest-text: #9e8a7d;
             --cal-rest-border: #362927;
-            
+
             --cal-missing-bg: #18100f;
-            --cal-missing-border: #5c4a45; 
+            --cal-missing-border: #5c4a45;
             --shadow-opacity: 0.25;
         }
 
@@ -77,6 +81,7 @@
         body {
             background-color: var(--bg-system);
             color: var(--text-main);
+            /* Ajust de protecció superior del Notch d'Apple */
             padding: calc(16px + env(safe-area-inset-top)) 14px calc(30px + env(safe-area-inset-bottom)) 14px;
             display: flex;
             flex-direction: column;
@@ -97,10 +102,11 @@
 
         .app-container {
             width: 100%;
-            max-width: 390px; 
+            /* Amplada de pantalla absoluta de disseny per a l'iPhone 13 */
+            max-width: 390px;
             display: flex;
             flex-direction: column;
-            gap: 24px; 
+            gap: 24px;
         }
 
         .brand-header-block {
@@ -222,24 +228,25 @@
             border-bottom: 1px solid var(--separator);
         }
 
+        /* EVITA EL ZOOM AUTOMÀTIC EN IPHONE CONFIGURANT LA FONT A 16PX */
         input[type="date"], input[type="time"], input[type="number"] {
             border: 1px solid var(--input-border);
             background: var(--input-bg);
             padding: 8px 10px;
             border-radius: 10px;
-            font-size: 16px; 
+            font-size: 16px;
             color: var(--text-main);
             text-align: right;
             font-weight: 700;
             outline: none;
             -webkit-appearance: none;
         }
-        
+
         input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
             border-color: var(--gold);
             background: var(--bg-card);
         }
-        
+
         input[type="number"] { width: 100px; }
 
         input[type="checkbox"] {
@@ -325,6 +332,7 @@
         .progress-track { width: 100%; height: 6px; background: var(--separator); border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--soler-gradient); transition: width 0.4s ease-out; }
 
+        /* CALENDARI EN CAIXA FIXA DE MIDA IPHONE 13 */
         .calendar-header {
             display: flex;
             justify-content: space-between;
@@ -346,7 +354,7 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 6px; 
+            gap: 6px;
             padding: 12px;
             background: #ffffff;
         }
@@ -359,11 +367,12 @@
             color: var(--text-muted);
         }
 
+        /* CEL·LES DE 46PX PER COMPLIR AMB EL RADI DE SEGURETAT TÀCTIL */
         .day-cell {
             aspect-ratio: 1;
             width: 100%;
             min-height: 46px;
-            border-radius: 12px; 
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -382,7 +391,7 @@
         .day-cell.worked { background-color: var(--cal-worked-bg); border: 1px solid var(--cal-worked-border); color: var(--cal-worked-text); }
         .day-cell.rest { background-color: var(--cal-rest-bg); border: 1px solid var(--cal-rest-border); color: var(--cal-rest-text); }
         .day-cell .hours-label { font-size: 0.55rem; font-weight: 800; position: absolute; bottom: 3px; text-transform: uppercase; }
-        
+
         .day-cell.current-selection {
             background: var(--soler-gradient) !important;
             color: #ffffff !important;
@@ -397,6 +406,7 @@
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
 
+        /* COIXINET AMB ADREÇA DE SEGURETAT PER AL CONTROL INFERIOR */
         .backup-footer {
             display: flex;
             justify-content: center;
@@ -414,7 +424,7 @@
         .ios-toast {
             display: none;
             position: fixed;
-            top: calc(16px + env(safe-area-inset-top)); 
+            top: calc(16px + env(safe-area-inset-top));
             left: 50%;
             transform: translateX(-50%);
             background: rgba(42, 27, 21, 0.96);
@@ -444,7 +454,7 @@
 <div id="toast" class="ios-toast">✓ Registrat a Can Soler</div>
 
 <div class="app-container">
-    
+
     <!-- HEADER BRANDING -->
     <div class="brand-header-block">
         <svg class="brand-logo-svg" viewBox="0 0 100 100">
@@ -474,7 +484,7 @@
                 <button class="cal-nav-btn" onclick="changeMonth(1)">&gt;</button>
             </div>
         </div>
-        
+
         <div class="ios-group">
             <div class="calendar-grid" id="calendar-grid"></div>
             <div class="calendar-legend">
@@ -582,64 +592,6 @@
 </div>
 
 <script>
-    // 🚀 INJECTOR AUTOMÀTIC D'ICONA PREMIUM EN FORMAT PNG COMPATIBLE AMB IPHONE
-    function generateAppleIcon() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 180;
-        canvas.height = 180;
-        const ctx = canvas.getContext('2d');
-
-        // 1. Fons sòlid Marró Cafè Noble de Can Soler
-        ctx.fillStyle = '#2a1b15';
-        ctx.fillRect(0, 0, 180, 180);
-
-        // 2. Marc exterior circular d'alta gastronomia (Or Vell)
-        ctx.strokeStyle = '#b38b4d';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.arc(90, 90, 76, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(90, 90, 70, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // 3. Tipografia de luxe tipus menú prèmium per al Monograma "CS"
-        ctx.fillStyle = '#b38b4d';
-        ctx.font = 'bold 56px Georgia, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('CS', 90, 80);
-
-        // 4. Detall de sublinia i coberts minimalistes a sota
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(55, 122);
-        ctx.lineTo(125, 122);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(90, 122, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 5. Injectar com a l'apple-touch-icon oficial en format PNG d'alta qualitat
-        const link = document.createElement('link');
-        link.rel = 'apple-touch-icon';
-        link.href = canvas.toDataURL('image/png');
-        document.head.appendChild(link);
-        
-        // Icona estàndard de navegador de seguretat
-        const favicon = document.createElement('link');
-        favicon.rel = 'icon';
-        favicon.type = 'image/png';
-        favicon.href = canvas.toDataURL('image/png');
-        document.head.appendChild(favicon);
-    }
-    
-    // Execució immediata abans que l'usuari premi "Afegir a la pantalla d'inici"
-    generateAppleIcon();
-
     let storageAvailable = true;
     try {
         localStorage.setItem('__test_soler_v6__', '1');
@@ -658,7 +610,7 @@
     let workData = {};
     let globalPaid = 0;
     let globalReturnedHours = 0;
-    let hasSplitActive = false; 
+    let hasSplitActive = false;
     let activeTheme = 'light';
 
     if (storageAvailable) {
@@ -673,19 +625,19 @@
         document.getElementById('theme-toggle-btn').innerText = '☀️';
     }
 
-    let currentDisplayDate = new Date(2026, 5, 13); 
+    let currentDisplayDate = new Date(2026, 5, 13);
 
     const dateInput = document.getElementById('date');
     const restDayCheckbox = document.getElementById('rest_day');
     const shiftsContainer = document.getElementById('shifts-container');
     const secondShiftContainer = document.getElementById('second-shift-container');
     const btnAddSplit = document.getElementById('btn-add-split');
-    
+
     const calendarGrid = document.getElementById('calendar-grid');
     const calendarTitle = document.getElementById('calendar-month-year');
     const toast = document.getElementById('toast');
     const saveButton = document.getElementById('btn-save-trigger');
-    
+
     const inputGlobalPaid = document.getElementById('input-global-paid');
     const inputGlobalReturned = document.getElementById('input-global-returned');
 
@@ -742,7 +694,7 @@
         let [hEnd, mEnd] = end.split(':').map(Number);
         let startMinutes = hStart * 60 + mStart;
         let endMinutes = hEnd * 60 + mEnd;
-        if (endMinutes < startMinutes) endMinutes += 24 * 60; 
+        if (endMinutes < startMinutes) endMinutes += 24 * 60;
         return (endMinutes - startMinutes) / 60;
     }
 
@@ -807,7 +759,7 @@
         document.getElementById('total-hours').innerText = totalHours.toFixed(1) + "h";
         const balanceLabel = document.getElementById('balance-label');
         const balanceValue = document.getElementById('balance-value');
-        
+
         const progressFill = document.getElementById('week-progress-fill');
         let percentage = (totalHours / 30) * 100;
         if (percentage > 100) percentage = 100;
@@ -832,27 +784,27 @@
         const month = currentDisplayDate.getMonth();
         const monthNames = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
         calendarTitle.innerText = `${monthNames[month]} ${year}`;
-        
+
         ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg'].forEach(d => {
             const el = document.createElement('div'); el.className = 'weekday'; el.innerText = d; calendarGrid.appendChild(el);
         });
-        
+
         let firstDayIndex = new Date(year, month, 1).getDay();
-        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; 
+        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
         const totalDays = new Date(year, month + 1, 0).getDate();
-        
+
         for (let i = 0; i < firstDayIndex; i++) {
             const emptyCell = document.createElement('div'); emptyCell.className = 'day-cell empty'; calendarGrid.appendChild(emptyCell);
         }
-        
+
         for (let day = 1; day <= totalDays; day++) {
             const cellDate = new Date(year, month, day);
             const dateStr = getLocalDateString(cellDate);
             const cell = document.createElement('div'); cell.className = 'day-cell';
-            
+
             if (dateStr === dateInput.value) cell.classList.add('current-selection');
             cell.innerText = day;
-            
+
             if (workData[dateStr]) {
                 if (workData[dateStr].restDay) {
                     cell.classList.add('rest');
@@ -864,12 +816,12 @@
                         const label = document.createElement('div'); label.className = 'hours-label'; label.innerText = totalH.toFixed(1) + "h"; cell.appendChild(label);
                     }
                 }
-            } 
-            
+            }
+
             cell.addEventListener('click', () => {
                 dateInput.value = dateStr;
                 loadDateIntoForm(dateStr);
-                renderCalendar(); 
+                renderCalendar();
                 document.getElementById('editor-section').scrollIntoView({ behavior: 'smooth' });
             });
             calendarGrid.appendChild(cell);
@@ -953,7 +905,7 @@
                         workData = content.workData; globalPaid = content.globalPaid || 0; globalReturnedHours = content.globalReturnedHours || 0;
                         if (storageAvailable) {
                             localStorage.setItem('work_hours_soler_v6', JSON.stringify(workData));
-                            localStorage.setItem('global_paid_v6', globalPaid); 
+                            localStorage.setItem('global_paid_v6', globalPaid);
                             localStorage.setItem('global_returned_hours_v6', globalReturnedHours);
                         }
                         inputGlobalPaid.value = globalPaid > 0 ? globalPaid : "";
