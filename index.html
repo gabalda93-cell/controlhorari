@@ -2,8 +2,13 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Control Horari Laboral</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Horari">
+    
     <style>
         :root {
             --bg-body: #f4f5f7;
@@ -33,6 +38,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            /* Evita rebots estranys en fer scroll a iOS */
+            overflow-x: hidden; 
         }
 
         .error-banner {
@@ -61,6 +68,9 @@
         @media (max-width: 768px) {
             .app-container {
                 grid-template-columns: 1fr;
+            }
+            .app-container > div:nth-child(2) {
+                grid-row: 1; /* El calendari primer a mòbils */
             }
         }
 
@@ -118,19 +128,26 @@
 
         input[type="date"], input[type="time"] {
             width: 100%;
-            padding: 8px 12px;
+            padding: 12px;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 1rem;
             color: var(--text-main);
             background: var(--bg-body);
+            -webkit-appearance: none; /* Força estil net a iOS */
         }
 
         .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin: 15px 0;
+            gap: 12px;
+            margin: 18px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            -webkit-appearance: checkbox;
         }
 
         .shift-row {
@@ -143,21 +160,17 @@
             border-radius: 8px;
         }
 
-        button {
+        .btn-desar {
             width: 100%;
-            padding: 10px;
+            padding: 14px;
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 1rem;
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: #2d3748;
+            -webkit-appearance: none;
         }
 
         .summary-box {
@@ -207,18 +220,14 @@
         .day-cell {
             aspect-ratio: 1;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 4px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             background: #fff;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .day-cell:hover {
-            border-color: var(--primary);
+            -webkit-tap-highlight-color: transparent; /* Elimina flaix blau a iOS */
         }
 
         .day-cell .day-num {
@@ -238,7 +247,6 @@
         .day-cell.empty {
             background: transparent;
             border: none;
-            cursor: default;
         }
 
         .day-cell.rest {
@@ -250,9 +258,10 @@
             background: transparent;
             color: var(--text-muted);
         }
-
+        
         .day-cell.current-selection {
             border: 2px solid var(--primary);
+            background-color: #fafafa;
         }
 
         .toast-notification {
@@ -260,10 +269,10 @@
             background: var(--success);
             color: white;
             text-align: center;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            margin-top: 10px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-top: 12px;
             font-weight: 600;
         }
     </style>
@@ -271,27 +280,27 @@
 <body>
 
 <div id="security-warning" class="error-banner">
-    ⚠️ <strong>Atenció:</strong> El teu navegador està bloquejant l'accés al LocalStorage (segurament per obrir el fitxer directament des del disc dur amb <em>file://</em>). Les dades es perdran en refrescar. Puja l'arxiu a GitHub o usa un servidor local per solucionar-ho.
+    ⚠️ <strong>Atenció:</strong> El LocalStorage està desactivat o bloquejat.
 </div>
 
 <div class="app-container">
     <header>
-        <h1>Control Horari laboral</h1>
-        <div class="contract-badge">Contracte: 30h / setmana</div>
+        <h1>Control Horari</h1>
+        <div class="contract-badge">Contracte: 30h</div>
     </header>
 
-    <div style="display: flex; flex-direction: column; gap: 20px;">
+    <div id="editor-section" style="display: flex; flex-direction: column; gap: 20px;">
         <div class="card">
             <h2 id="form-title">Registrar Dia</h2>
-            <form id="hours-form">
+            <div class="pure-form">
                 <div class="form-group">
-                    <label for="date">Data</label>
-                    <input type="date" id="date" required>
+                    <label for="date">Data Seleccionada</label>
+                    <input type="date" id="date">
                 </div>
 
                 <div class="checkbox-group">
                     <input type="checkbox" id="rest_day">
-                    <label for="rest_day" style="font-weight: 600; font-size: 0.9rem; cursor:pointer;">Marcar com a dia de descans</label>
+                    <label for="rest_day" style="font-weight: 600; font-size: 0.9rem; cursor:pointer;">Dia de descans</label>
                 </div>
 
                 <div id="shifts-container">
@@ -320,13 +329,13 @@
                     </div>
                 </div>
 
-                <button type="submit" style="margin-top: 10px;">Desar Registre</button>
-                <div id="toast" class="toast-notification">Dades desades correctament!</div>
-            </form>
+                <button type="button" class="btn-desar" id="btn-save-trigger">Desar Registre</button>
+                <div id="toast" class="toast-notification">✓ Desar correctament</div>
+            </div>
         </div>
 
         <div class="card">
-            <h2>Balanç de la Setmana</h2>
+            <h2>Balanç Setmanal</h2>
             <div class="summary-box">
                 <div class="stat-card">
                     <div style="font-size: 0.8rem; color: var(--text-muted);">Hores Fetes</div>
@@ -344,22 +353,21 @@
     <div class="card">
         <div class="calendar-header">
             <h2 id="calendar-month-year" style="margin: 0; border: none; padding: 0;">Juny 2026</h2>
-            <div style="display:flex; gap: 5px;">
-                <button onclick="changeMonth(-1)" style="padding: 5px 10px; font-size: 0.9rem; width: auto;"><</button>
-                <button onclick="changeMonth(1)" style="padding: 5px 10px; font-size: 0.9rem; width: auto;">></button>
+            <div style="display:flex; gap: 8px;">
+                <button onclick="changeMonth(-1)" style="padding: 6px 12px; font-size: 0.9rem; width: auto; background: var(--primary-light); color: var(--text-main); font-weight: bold; border:none; border-radius:6px;"><</button>
+                <button onclick="changeMonth(1)" style="padding: 6px 12px; font-size: 0.9rem; width: auto; background: var(--primary-light); color: var(--text-main); font-weight: bold; border:none; border-radius:6px;">></button>
             </div>
         </div>
-
+        
         <div class="calendar-grid" id="calendar-grid"></div>
     </div>
 </div>
 
 <script>
-    // TEST DE SEGURETAT DE LOCALSTORAGE
     let storageAvailable = true;
     try {
-        localStorage.setItem('__test__', '1');
-        localStorage.removeItem('__test__');
+        localStorage.setItem('__test_ios__', '1');
+        localStorage.removeItem('__test_ios__');
     } catch (e) {
         storageAvailable = false;
         document.getElementById('security-warning').style.display = 'block';
@@ -372,7 +380,6 @@
         return `${y}-${m}-${d}`;
     }
 
-    // Càrrega segura tolerants a fallades de seguretat local
     let workData = {};
     if (storageAvailable) {
         workData = JSON.parse(localStorage.getItem('work_hours_data')) || {};
@@ -386,15 +393,15 @@
         if (storageAvailable) localStorage.setItem('work_hours_data', JSON.stringify(workData));
     }
 
-    let currentDisplayDate = new Date(2026, 5, 13);
+    let currentDisplayDate = new Date(2026, 5, 13); 
 
-    const form = document.getElementById('hours-form');
     const dateInput = document.getElementById('date');
     const restDayCheckbox = document.getElementById('rest_day');
     const shiftsContainer = document.getElementById('shifts-container');
     const calendarGrid = document.getElementById('calendar-grid');
     const calendarTitle = document.getElementById('calendar-month-year');
     const toast = document.getElementById('toast');
+    const saveButton = document.getElementById('btn-save-trigger');
 
     dateInput.value = getLocalDateString(currentDisplayDate);
 
@@ -412,14 +419,9 @@
         if (!start || !end) return 0;
         let [hStart, mStart] = start.split(':').map(Number);
         let [hEnd, mEnd] = end.split(':').map(Number);
-
         let startMinutes = hStart * 60 + mStart;
         let endMinutes = hEnd * 60 + mEnd;
-
-        if (endMinutes < startMinutes) {
-            endMinutes += 24 * 60;
-        }
-
+        if (endMinutes < startMinutes) endMinutes += 24 * 60; 
         return (endMinutes - startMinutes) / 60;
     }
 
@@ -433,7 +435,6 @@
         let date = new Date(parts[0], parts[1] - 1, parts[2]);
         let day = date.getDay();
         let diff = date.getDate() - day + (day === 0 ? -6 : 1);
-
         let monday = new Date(parts[0], parts[1] - 1, diff);
         let weekDays = [];
         for (let i = 0; i < 7; i++) {
@@ -446,42 +447,30 @@
     function updateWeeklySummary() {
         const selectedDateStr = dateInput.value;
         const weekDays = getWeekRange(selectedDateStr);
-
         let totalHours = 0;
         weekDays.forEach(dateStr => {
-            if (workData[dateStr]) {
-                totalHours += getDayTotalHours(workData[dateStr]);
-            }
+            if (workData[dateStr]) totalHours += getDayTotalHours(workData[dateStr]);
         });
 
         document.getElementById('total-hours').innerText = totalHours.toFixed(2) + "h";
-
         const balanceCard = document.getElementById('balance-card');
         const balanceLabel = document.getElementById('balance-label');
         const balanceValue = document.getElementById('balance-value');
         const financialImpact = document.getElementById('financial-impact');
-
-        const contractHours = 30;
-        const extraHourRate = 12;
-
-        balanceCard.className = "stat-card";
-
-        if (totalHours >= contractHours) {
-            let extraHours = totalHours - contractHours;
+        
+        if (totalHours >= 30) {
+            let extraHours = totalHours - 30;
             balanceLabel.innerText = "Hores Extra";
             balanceValue.innerText = "+" + extraHours.toFixed(2) + "h";
-            balanceCard.classList.add('alert-success');
-
-            let money = extraHours * extraHourRate;
-            financialImpact.innerText = `Et deuen en hores extres: +${money.toFixed(2)}€`;
+            balanceCard.className = "stat-card alert-success";
+            financialImpact.innerText = `Et deuen: +${(extraHours * 12).toFixed(2)}€`;
             financialImpact.style.color = "var(--success)";
         } else {
-            let owedHours = contractHours - totalHours;
+            let owedHours = 30 - totalHours;
             balanceLabel.innerText = "Hores mancants";
             balanceValue.innerText = "-" + owedHours.toFixed(2) + "h";
-            balanceCard.classList.add('alert-danger');
-
-            financialImpact.innerText = `Balanç setmanal per sota del contracte (30h).`;
+            balanceCard.className = "stat-card alert-danger";
+            financialImpact.innerText = `Balanç setmanal per sota de les 30h.`;
             financialImpact.style.color = "var(--danger)";
         }
     }
@@ -490,26 +479,109 @@
         calendarGrid.innerHTML = '';
         const year = currentDisplayDate.getFullYear();
         const month = currentDisplayDate.getMonth();
-
         const monthNames = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
         calendarTitle.innerText = `${monthNames[month]} ${year}`;
-
-        const daysOfWeek = ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg'];
-        daysOfWeek.forEach(d => {
+        
+        ['Dl', 'Dt', 'Dc', 'Dj', 'Dv', 'Ds', 'Dg'].forEach(d => {
             const el = document.createElement('div');
-            el.className = 'weekday';
-            el.innerText = d;
-            calendarGrid.appendChild(el);
+            el.className = 'weekday'; el.innerText = d; calendarGrid.appendChild(el);
         });
-
+        
         let firstDayIndex = new Date(year, month, 1).getDay();
-        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+        firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; 
         const totalDays = new Date(year, month + 1, 0).getDate();
-
+        
         for (let i = 0; i < firstDayIndex; i++) {
             const emptyCell = document.createElement('div');
-            emptyCell.className = 'day-cell empty';
-            calendarGrid.appendChild(emptyCell);
+            emptyCell.className = 'day-cell empty'; calendarGrid.appendChild(emptyCell);
         }
+        
+        for (let day = 1; day <= totalDays; day++) {
+            const cellDate = new Date(year, month, day);
+            const dateStr = getLocalDateString(cellDate);
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            if (dateStr === dateInput.value) cell.classList.add('current-selection');
+            
+            const dayNum = document.createElement('div');
+            dayNum.className = 'day-num'; dayNum.innerText = day; cell.appendChild(dayNum);
+            
+            if (workData[dateStr]) {
+                if (workData[dateStr].restDay) {
+                    cell.classList.add('rest');
+                    const text = document.createElement('div'); text.className = 'day-hours'; text.innerText = "Descans"; cell.appendChild(text);
+                } else {
+                    let totalH = getDayTotalHours(workData[dateStr]);
+                    if (totalH > 0) {
+                        const hoursLabel = document.createElement('div'); hoursLabel.className = 'day-hours'; hoursLabel.innerText = totalH.toFixed(1) + "h"; cell.appendChild(hoursLabel);
+                    }
+                }
+            }
+            
+            cell.addEventListener('click', () => {
+                dateInput.value = dateStr;
+                loadDateIntoForm(dateStr);
+                renderCalendar(); 
+                document.getElementById('editor-section').scrollIntoView({ behavior: 'smooth' });
+            });
+            calendarGrid.appendChild(cell);
+        }
+    }
 
-        for (let
+    function loadDateIntoForm(dateStr) {
+        const parts = dateStr.split('-');
+        document.getElementById('form-title').innerText = `Registrar: ${parts[2]}/${parts[1]}/${parts[0]}`;
+        if (workData[dateStr]) {
+            const d = workData[dateStr];
+            restDayCheckbox.checked = d.restDay;
+            document.getElementById('start_1').value = d.s1_in || "";
+            document.getElementById('end_1').value = d.s1_out || "";
+            document.getElementById('start_2').value = d.s2_in || "";
+            document.getElementById('end_2').value = d.s2_out || "";
+        } else {
+            restDayCheckbox.checked = false;
+            document.getElementById('start_1').value = ""; document.getElementById('end_1').value = "";
+            document.getElementById('start_2').value = ""; document.getElementById('end_2').value = "";
+        }
+        restDayCheckbox.dispatchEvent(new Event('change'));
+        updateWeeklySummary();
+    }
+
+    dateInput.addEventListener('change', (e) => {
+        const parts = e.target.value.split('-');
+        currentDisplayDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        loadDateIntoForm(e.target.value);
+        renderCalendar();
+    });
+
+    function changeMonth(direction) {
+        currentDisplayDate.setMonth(currentDisplayDate.getMonth() + direction);
+        renderCalendar();
+    }
+
+    saveButton.addEventListener('click', function() {
+        const selectedDate = dateInput.value;
+        if(!selectedDate) return;
+        
+        workData[selectedDate] = {
+            restDay: restDayCheckbox.checked,
+            s1_in: document.getElementById('start_1').value,
+            s1_out: document.getElementById('end_1').value,
+            s2_in: document.getElementById('start_2').value,
+            s2_out: document.getElementById('end_2').value
+        };
+        
+        if (storageAvailable) localStorage.setItem('work_hours_data', JSON.stringify(workData));
+        renderCalendar();
+        updateWeeklySummary();
+        
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    });
+
+    loadDateIntoForm(dateInput.value);
+    renderCalendar();
+</script>
+
+</body>
+</html>
