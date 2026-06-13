@@ -10,10 +10,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Can Soler">
     
-    <!-- ICONA DE L'ESCRIPTORI (🍽️) -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🍽️</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🍽️</text></svg>">
-    
     <style>
         :root {
             --bg-system: #f6f1eb; 
@@ -81,7 +77,6 @@
         body {
             background-color: var(--bg-system);
             color: var(--text-main);
-            /* Ajust de protecció superior del Notch d'Apple */
             padding: calc(16px + env(safe-area-inset-top)) 14px calc(30px + env(safe-area-inset-bottom)) 14px;
             display: flex;
             flex-direction: column;
@@ -102,7 +97,6 @@
 
         .app-container {
             width: 100%;
-            /* Amplada de pantalla absoluta de disseny per a l'iPhone 13 */
             max-width: 390px; 
             display: flex;
             flex-direction: column;
@@ -228,7 +222,6 @@
             border-bottom: 1px solid var(--separator);
         }
 
-        /* EVITA EL ZOOM AUTOMÀTIC EN IPHONE CONFIGURANT LA FONT A 16PX */
         input[type="date"], input[type="time"], input[type="number"] {
             border: 1px solid var(--input-border);
             background: var(--input-bg);
@@ -332,7 +325,6 @@
         .progress-track { width: 100%; height: 6px; background: var(--separator); border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--soler-gradient); transition: width 0.4s ease-out; }
 
-        /* CALENDARI EN CAIXA FIXA DE MIDA IPHONE 13 */
         .calendar-header {
             display: flex;
             justify-content: space-between;
@@ -367,7 +359,6 @@
             color: var(--text-muted);
         }
 
-        /* CEL·LES DE 46PX PER COMPLIR AMB EL RADI DE SEGURETAT TÀCTIL */
         .day-cell {
             aspect-ratio: 1;
             width: 100%;
@@ -406,7 +397,6 @@
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
 
-        /* COIXINET AMB ADREÇA DE SEGURETAT PER AL CONTROL INFERIOR */
         .backup-footer {
             display: flex;
             justify-content: center;
@@ -592,6 +582,64 @@
 </div>
 
 <script>
+    // 🚀 INJECTOR AUTOMÀTIC D'ICONA PREMIUM EN FORMAT PNG COMPATIBLE AMB IPHONE
+    function generateAppleIcon() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 180;
+        canvas.height = 180;
+        const ctx = canvas.getContext('2d');
+
+        // 1. Fons sòlid Marró Cafè Noble de Can Soler
+        ctx.fillStyle = '#2a1b15';
+        ctx.fillRect(0, 0, 180, 180);
+
+        // 2. Marc exterior circular d'alta gastronomia (Or Vell)
+        ctx.strokeStyle = '#b38b4d';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(90, 90, 76, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(90, 90, 70, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 3. Tipografia de luxe tipus menú prèmium per al Monograma "CS"
+        ctx.fillStyle = '#b38b4d';
+        ctx.font = 'bold 56px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('CS', 90, 80);
+
+        // 4. Detall de sublinia i coberts minimalistes a sota
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(55, 122);
+        ctx.lineTo(125, 122);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(90, 122, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 5. Injectar com a l'apple-touch-icon oficial en format PNG d'alta qualitat
+        const link = document.createElement('link');
+        link.rel = 'apple-touch-icon';
+        link.href = canvas.toDataURL('image/png');
+        document.head.appendChild(link);
+        
+        // Icona estàndard de navegador de seguretat
+        const favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        favicon.type = 'image/png';
+        favicon.href = canvas.toDataURL('image/png');
+        document.head.appendChild(favicon);
+    }
+    
+    // Execució immediata abans que l'usuari premi "Afegir a la pantalla d'inici"
+    generateAppleIcon();
+
     let storageAvailable = true;
     try {
         localStorage.setItem('__test_soler_v6__', '1');
