@@ -81,7 +81,6 @@
         body {
             background-color: var(--bg-system);
             color: var(--text-main);
-            /* Ajust de protecció superior del Notch d'Apple */
             padding: calc(16px + env(safe-area-inset-top)) 14px calc(30px + env(safe-area-inset-bottom)) 14px;
             display: flex;
             flex-direction: column;
@@ -102,7 +101,6 @@
 
         .app-container {
             width: 100%;
-            /* Amplada de pantalla absoluta de disseny per a l'iPhone 13 */
             max-width: 390px;
             display: flex;
             flex-direction: column;
@@ -228,7 +226,6 @@
             border-bottom: 1px solid var(--separator);
         }
 
-        /* EVITA EL ZOOM AUTOMÀTIC EN IPHONE CONFIGURANT LA FONT A 16PX */
         input[type="date"], input[type="time"], input[type="number"] {
             border: 1px solid var(--input-border);
             background: var(--input-bg);
@@ -332,7 +329,6 @@
         .progress-track { width: 100%; height: 6px; background: var(--separator); border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--soler-gradient); transition: width 0.4s ease-out; }
 
-        /* CALENDARI EN CAIXA FIXA DE MIDA IPHONE 13 */
         .calendar-header {
             display: flex;
             justify-content: space-between;
@@ -367,7 +363,6 @@
             color: var(--text-muted);
         }
 
-        /* CEL·LES DE 46PX PER COMPLIR AMB EL RADI DE SEGURETAT TÀCTIL */
         .day-cell {
             aspect-ratio: 1;
             width: 100%;
@@ -406,7 +401,6 @@
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
 
-        /* COIXINET AMB ADREÇA DE SEGURETAT PER AL CONTROL INFERIOR */
         .backup-footer {
             display: flex;
             justify-content: center;
@@ -495,27 +489,64 @@
         </div>
     </div>
 
-    <!-- 2. HISTORIAL COMPTABLE ACUMULAT -->
+    <!-- 2. COMPTES SETMANALS I MENSUALS -->
     <div>
-        <div class="ios-group-title">Historial de Comptes Generals</div>
+        <div class="ios-group-title">Comptes d'aquest període</div>
         <div class="ios-group">
-            <div class="ios-balance-grid">
+            <div class="ios-balance-grid" style="row-gap: 12px; padding: 18px 0;">
                 <div class="balance-item">
-                    <span class="lbl">Hores Extres Totals</span>
+                    <span class="lbl">Hores Extres (Setmana)</span>
                     <span class="val" id="global-accumulated-hours" style="color: var(--gold);">0h</span>
                 </div>
                 <div class="balance-item">
                     <span class="lbl">Falta per pagar</span>
-                    <span class="wallet-value" id="global-pending-money">0.00€</span>
+                    <span class="wallet-value" id="global-pending-money">0,00€</span>
+                </div>
+                <div class="balance-item" style="border-top: 1px solid var(--separator); padding-top: 8px; cursor: pointer;" onclick="editWeeklyField('paid', 'Total Pagat')">
+                    <span class="lbl">Total Pagat (Setm.)<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
+                    <span class="val" id="global-total-paid" style="font-size: 1.2rem; color: var(--text-muted);">0,00€</span>
+                </div>
+                <div class="balance-item" style="border-top: 1px solid var(--separator); padding-top: 8px; cursor: pointer;" onclick="editWeeklyField('returned', 'Total Retornat')">
+                    <span class="lbl">Total Retornat (Setm.)<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
+                    <span class="val" id="global-total-returned" style="font-size: 1.2rem; color: var(--text-muted);">0,0h</span>
+                </div>
+                <div class="balance-item" style="border-top: 2px dashed var(--input-border); padding-top: 12px; cursor: pointer;" onclick="editMonthlyField('tips', 'Propines')">
+                    <span class="lbl">Propines (Mes)<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
+                    <span class="val" id="global-total-tips" style="font-size: 1.3rem; color: var(--text-main); font-weight: 800;">0,00€</span>
+                </div>
+                <div class="balance-item" style="border-top: 2px dashed var(--input-border); padding-top: 12px; cursor: pointer;" onclick="editMonthlyField('commissions', 'Comissions')">
+                    <span class="lbl">Comissions (Mes)<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
+                    <span class="val" id="global-total-commissions" style="font-size: 1.3rem; color: var(--text-main); font-weight: 800;">0,00€</span>
+                </div>
+            </div>
+            
+            <div class="ios-row">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir pagament setm. (€)</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="input-global-paid" step="any" placeholder="0.00" style="width: 85px;">
+                    <button type="button" id="btn-add-paid" class="btn-secondary-ios" style="font-size: 1.4rem; padding: 0 6px; font-weight: 800;">+</button>
                 </div>
             </div>
             <div class="ios-row">
-                <label style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">M'han pagat (€)</label>
-                <input type="number" id="input-global-paid" step="any" placeholder="0.00">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir retorn hores setm. (h)</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="input-global-returned" step="any" placeholder="0.0" style="width: 85px;">
+                    <button type="button" id="btn-add-returned" class="btn-secondary-ios" style="font-size: 1.4rem; padding: 0 6px; font-weight: 800;">+</button>
+                </div>
             </div>
             <div class="ios-row">
-                <label style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted);">Retorn d'hores (h)</label>
-                <input type="number" id="input-global-returned" step="any" placeholder="0.0">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir propines del mes (€)</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="input-global-tips" step="any" placeholder="0.00" style="width: 85px;">
+                    <button type="button" id="btn-add-tips" class="btn-secondary-ios" style="font-size: 1.4rem; padding: 0 6px; font-weight: 800;">+</button>
+                </div>
+            </div>
+            <div class="ios-row">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir comissions del mes (€)</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="input-global-commissions" step="any" placeholder="0.00" style="width: 85px;">
+                    <button type="button" id="btn-add-commissions" class="btn-secondary-ios" style="font-size: 1.4rem; padding: 0 6px; font-weight: 800;">+</button>
+                </div>
             </div>
         </div>
     </div>
@@ -583,7 +614,31 @@
         <button type="button" class="btn-soler" id="btn-save-trigger" style="margin-top: 14px;">Desar registre</button>
     </div>
 
-    <!-- 5. BACKUP -->
+    <!-- 5. APARTAT DE SOU TOTAL ESTIMAT -->
+    <div>
+        <div class="ios-group-title" id="salary-title">Sou Estimat del Mes</div>
+        <div class="ios-group" style="background: var(--bg-card); padding: 20px 16px; text-align: center;">
+            <span class="lbl" style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Previsió Sou Net Final</span>
+            <span class="wallet-value" id="total-monthly-salary" style="font-size: 2.3rem; font-weight: 900; display: block; margin-bottom: 16px;">1.286,00€</span>
+            
+            <div style="border-top: 1px solid var(--separator); padding-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">
+                <div>
+                    <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8;">Sou Fix Base</span>
+                    <span style="color: var(--text-main); font-size: 0.95rem; font-weight: 800;">1286€</span>
+                </div>
+                <div>
+                    <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8;">Valor Extres</span>
+                    <span id="salary-overtime-value" style="color: var(--text-main); font-size: 0.95rem; font-weight: 800;">0,00€</span>
+                </div>
+                <div>
+                    <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8;">Prop. + Comis.</span>
+                    <span id="salary-others-value" style="color: var(--text-main); font-size: 0.95rem; font-weight: 800;">0,00€</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. BACKUP -->
     <footer class="backup-footer">
         <button type="button" class="btn-link-backup" onclick="exportData()">📥 Còpia</button>
         <button type="button" class="btn-link-backup" onclick="importData()">📤 Carregar</button>
@@ -608,15 +663,15 @@
     }
 
     let workData = {};
-    let globalPaid = 0;
-    let globalReturnedHours = 0;
+    let weeklyAccounting = {}; 
+    let monthlyAccounting = {}; 
     let hasSplitActive = false;
     let activeTheme = 'light';
 
     if (storageAvailable) {
         workData = JSON.parse(localStorage.getItem('work_hours_soler_v6')) || {};
-        globalPaid = parseFloat(localStorage.getItem('global_paid_v6')) || 0;
-        globalReturnedHours = parseFloat(localStorage.getItem('global_returned_hours_v6')) || 0;
+        weeklyAccounting = JSON.parse(localStorage.getItem('weekly_accounting_v6')) || {};
+        monthlyAccounting = JSON.parse(localStorage.getItem('monthly_accounting_v6')) || {};
         activeTheme = localStorage.getItem('theme_soler_v6') || 'light';
     }
 
@@ -640,9 +695,8 @@
 
     const inputGlobalPaid = document.getElementById('input-global-paid');
     const inputGlobalReturned = document.getElementById('input-global-returned');
-
-    inputGlobalPaid.value = globalPaid > 0 ? globalPaid : "";
-    inputGlobalReturned.value = globalReturnedHours > 0 ? globalReturnedHours : "";
+    const inputGlobalTips = document.getElementById('input-global-tips');
+    const inputGlobalCommissions = document.getElementById('input-global-commissions');
 
     dateInput.value = getLocalDateString(currentDisplayDate);
 
@@ -711,6 +765,11 @@
         return getLocalDateString(new Date(parts[0], parts[1] - 1, diff));
     }
 
+    function getMonthKey(dateStr) {
+        const parts = dateStr.split('-');
+        return `${parts[0]}-${parts[1]}`;
+    }
+
     function getWeekRange(dateStr) {
         const parts = dateStr.split('-');
         let date = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -726,26 +785,67 @@
     }
 
     function updateGlobalAccounting() {
-        let weeklyGroups = {};
-        Object.keys(workData).forEach(dateStr => {
-            let monKey = getMondayKey(dateStr);
-            let hours = getDayTotalHours(workData[dateStr]);
-            weeklyGroups[monKey] = (weeklyGroups[monKey] || 0) + hours;
+        const selectedDateStr = dateInput.value;
+        const monKey = getMondayKey(selectedDateStr);
+        const monthKey = getMonthKey(selectedDateStr);
+        const weekDays = getWeekRange(selectedDateStr);
+
+        let totalHoursThisWeek = 0;
+        weekDays.forEach(dateStr => {
+            if (workData[dateStr]) totalHoursThisWeek += getDayTotalHours(workData[dateStr]);
         });
 
-        let totalExtraHoursGenerated = 0;
-        Object.keys(weeklyGroups).forEach(monKey => {
-            if (weeklyGroups[monKey] > 30) { totalExtraHoursGenerated += (weeklyGroups[monKey] - 30); }
-        });
+        let extraHoursThisWeek = totalHoursThisWeek > 30 ? (totalHoursThisWeek - 30) : 0;
+        let account = weeklyAccounting[monKey] || { paid: 0, returned: 0 };
+        let weekPaid = account.paid || 0;
+        let weekReturned = account.returned || 0;
 
-        let totalMoneyEarned = totalExtraHoursGenerated * 12;
-        let moneyDeductedByHours = globalReturnedHours * 12;
-        let finalPendingMoney = totalMoneyEarned - globalPaid - moneyDeductedByHours;
-
+        let totalMoneyEarned = extraHoursThisWeek * 12;
+        let moneyDeductedByHours = weekReturned * 12;
+        let finalPendingMoney = totalMoneyEarned - weekPaid - moneyDeductedByHours;
         if (finalPendingMoney < 0) finalPendingMoney = 0;
 
-        document.getElementById('global-accumulated-hours').innerText = totalExtraHoursGenerated.toFixed(1) + "h";
-        document.getElementById('global-pending-money').innerText = finalPendingMoney.toFixed(2) + "€";
+        // UNIFICACIÓ DE FORMAT: Tot a comes decimals
+        document.getElementById('global-accumulated-hours').innerText = extraHoursThisWeek.toFixed(1).replace('.', ',') + "h";
+        document.getElementById('global-pending-money').innerText = finalPendingMoney.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('global-total-paid').innerText = weekPaid.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('global-total-returned').innerText = weekReturned.toFixed(1).replace('.', ',') + "h";
+
+        let monthAccount = monthlyAccounting[monthKey] || { tips: 0, commissions: 0 };
+        let monthTips = monthAccount.tips || 0;
+        let monthCommissions = monthAccount.commissions || 0;
+
+        document.getElementById('global-total-tips').innerText = monthTips.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('global-total-commissions').innerText = monthCommissions.toFixed(2).replace('.', ',') + "€";
+
+        // PANELL MOTIVACIONAL
+        const baseSalary = 1286;
+
+        let monthlyWeeksGroups = {};
+        Object.keys(workData).forEach(dStr => {
+            let mKey = getMondayKey(dStr);
+            let hours = getDayTotalHours(workData[dStr]);
+            monthlyWeeksGroups[mKey] = (monthlyWeeksGroups[mKey] || 0) + hours;
+        });
+
+        let totalExtraHoursMoneyMonth = 0;
+        Object.keys(monthlyWeeksGroups).forEach(mKey => {
+            if (getMonthKey(mKey) === monthKey) {
+                if (monthlyWeeksGroups[mKey] > 30) {
+                    totalExtraHoursMoneyMonth += (monthlyWeeksGroups[mKey] - 30) * 12;
+                }
+            }
+        });
+
+        let totalOthersMonth = monthTips + monthCommissions;
+        let finalEstimatedSalary = baseSalary + totalExtraHoursMoneyMonth + totalOthersMonth;
+
+        document.getElementById('total-monthly-salary').innerText = finalEstimatedSalary.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('salary-overtime-value').innerText = totalExtraHoursMoneyMonth.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('salary-others-value').innerText = totalOthersMonth.toFixed(2).replace('.', ',') + "€";
+
+        const monthNames = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
+        document.getElementById('salary-title').innerText = `Sou Estimat de ${monthNames[currentDisplayDate.getMonth()]}`;
     }
 
     function updateWeeklySummary() {
@@ -845,18 +945,105 @@
         }
         restDayCheckbox.dispatchEvent(new Event('change'));
         updateWeeklySummary();
+        updateGlobalAccounting(); 
     }
 
-    inputGlobalPaid.addEventListener('input', function(e) {
-        globalPaid = parseFloat(e.target.value) || 0;
-        if (storageAvailable) localStorage.setItem('global_paid_v6', globalPaid);
-        updateGlobalAccounting();
+    function editWeeklyField(field, label) {
+        const selectedDateStr = dateInput.value;
+        const monKey = getMondayKey(selectedDateStr);
+        if (!weeklyAccounting[monKey]) weeklyAccounting[monKey] = { paid: 0, returned: 0 };
+        
+        let currentVal = weeklyAccounting[monKey][field] || 0;
+        let newVal = prompt(`Modificar el total de ${label} d'aquesta setmana:`, currentVal);
+        
+        if (newVal !== null) {
+            let parsed = parseFloat(newVal.replace(',', '.')) || 0;
+            if (parsed < 0) parsed = 0;
+            weeklyAccounting[monKey][field] = parsed;
+            if (storageAvailable) localStorage.setItem('weekly_accounting_v6', JSON.stringify(weeklyAccounting));
+            updateGlobalAccounting();
+        }
+    }
+
+    function editMonthlyField(field, label) {
+        const selectedDateStr = dateInput.value;
+        const monthKey = getMonthKey(selectedDateStr);
+        if (!monthlyAccounting[monthKey]) monthlyAccounting[monthKey] = { tips: 0, commissions: 0 };
+        
+        let currentVal = monthlyAccounting[monthKey][field] || 0;
+        let newVal = prompt(`Modificar les ${label} totals d'aquest mes:`, currentVal);
+        
+        if (newVal !== null) {
+            let parsed = parseFloat(newVal.replace(',', '.')) || 0;
+            if (parsed < 0) parsed = 0;
+            monthlyAccounting[monthKey][field] = parsed;
+            if (storageAvailable) localStorage.setItem('monthly_accounting_v6', JSON.stringify(monthlyAccounting));
+            updateGlobalAccounting();
+        }
+    }
+
+    document.getElementById('btn-add-paid').addEventListener('click', function() {
+        let val = parseFloat(inputGlobalPaid.value) || 0;
+        if (val !== 0) {
+            const selectedDateStr = dateInput.value;
+            const monKey = getMondayKey(selectedDateStr);
+            if (!weeklyAccounting[monKey]) weeklyAccounting[monKey] = { paid: 0, returned: 0 };
+            weeklyAccounting[monKey].paid += val;
+            if (weeklyAccounting[monKey].paid < 0) weeklyAccounting[monKey].paid = 0;
+            if (storageAvailable) localStorage.setItem('weekly_accounting_v6', JSON.stringify(weeklyAccounting));
+            inputGlobalPaid.value = ""; 
+            updateGlobalAccounting();
+            toast.innerText = "✓ Pagament setmanal afegit";
+            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; toast.innerText = "✓ Registrat a Can Soler"; }, 2000);
+        }
     });
 
-    inputGlobalReturned.addEventListener('input', function(e) {
-        globalReturnedHours = parseFloat(e.target.value) || 0;
-        if (storageAvailable) localStorage.setItem('global_returned_hours_v6', globalReturnedHours);
-        updateGlobalAccounting();
+    document.getElementById('btn-add-returned').addEventListener('click', function() {
+        let val = parseFloat(inputGlobalReturned.value) || 0;
+        if (val !== 0) {
+            const selectedDateStr = dateInput.value;
+            const monKey = getMondayKey(selectedDateStr);
+            if (!weeklyAccounting[monKey]) weeklyAccounting[monKey] = { paid: 0, returned: 0 };
+            weeklyAccounting[monKey].returned += val;
+            if (weeklyAccounting[monKey].returned < 0) weeklyAccounting[monKey].returned = 0;
+            if (storageAvailable) localStorage.setItem('weekly_accounting_v6', JSON.stringify(weeklyAccounting));
+            inputGlobalReturned.value = ""; 
+            updateGlobalAccounting();
+            toast.innerText = "✓ Retorn d'hores afegit";
+            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; toast.innerText = "✓ Registrat a Can Soler"; }, 2000);
+        }
+    });
+
+    document.getElementById('btn-add-tips').addEventListener('click', function() {
+        let val = parseFloat(inputGlobalTips.value) || 0;
+        if (val !== 0) {
+            const selectedDateStr = dateInput.value;
+            const monthKey = getMonthKey(selectedDateStr);
+            if (!monthlyAccounting[monthKey]) monthlyAccounting[monthKey] = { tips: 0, commissions: 0 };
+            monthlyAccounting[monthKey].tips += val;
+            if (monthlyAccounting[monthKey].tips < 0) monthlyAccounting[monthKey].tips = 0;
+            if (storageAvailable) localStorage.setItem('monthly_accounting_v6', JSON.stringify(monthlyAccounting));
+            inputGlobalTips.value = ""; 
+            updateGlobalAccounting();
+            toast.innerText = "✓ Propines mensuals afegides";
+            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; toast.innerText = "✓ Registrat a Can Soler"; }, 2000);
+        }
+    });
+
+    document.getElementById('btn-add-commissions').addEventListener('click', function() {
+        let val = parseFloat(inputGlobalCommissions.value) || 0;
+        if (val !== 0) {
+            const selectedDateStr = dateInput.value;
+            const monthKey = getMonthKey(selectedDateStr);
+            if (!monthlyAccounting[monthKey]) monthlyAccounting[monthKey] = { tips: 0, commissions: 0 };
+            monthlyAccounting[monthKey].commissions += val;
+            if (monthlyAccounting[monthKey].commissions < 0) monthlyAccounting[monthKey].commissions = 0;
+            if (storageAvailable) localStorage.setItem('monthly_accounting_v6', JSON.stringify(monthlyAccounting));
+            inputGlobalCommissions.value = ""; 
+            updateGlobalAccounting();
+            toast.innerText = "✓ Comissions mensuals afegides";
+            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; toast.innerText = "✓ Registrat a Can Soler"; }, 2000);
+        }
     });
 
     dateInput.addEventListener('change', (e) => {
@@ -866,9 +1053,13 @@
         renderCalendar();
     });
 
+    // CORRECCIÓ DE SEGURETAT: Actualització correcta del marcatge de cel·la al fer salt de mes
     function changeMonth(direction) {
         currentDisplayDate.setMonth(currentDisplayDate.getMonth() + direction);
+        const targetDate = new Date(currentDisplayDate.getFullYear(), currentDisplayDate.getMonth(), 1);
+        dateInput.value = getLocalDateString(targetDate);
         renderCalendar();
+        loadDateIntoForm(dateInput.value); 
     }
 
     saveButton.addEventListener('click', function() {
@@ -887,7 +1078,7 @@
     });
 
     function exportData() {
-        let backup = { workData, globalPaid, globalReturnedHours };
+        let backup = { workData, weeklyAccounting, monthlyAccounting };
         let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
         let downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr);
         downloadAnchor.setAttribute("download", "BACKUP_CAN_SOLER.json");
@@ -902,14 +1093,18 @@
                 try {
                     let content = JSON.parse(readerEvent.target.result);
                     if (content.workData) {
-                        workData = content.workData; globalPaid = content.globalPaid || 0; globalReturnedHours = content.globalReturnedHours || 0;
+                        workData = content.workData; 
+                        weeklyAccounting = content.weeklyAccounting || {};
+                        monthlyAccounting = content.monthlyAccounting || {};
                         if (storageAvailable) {
                             localStorage.setItem('work_hours_soler_v6', JSON.stringify(workData));
-                            localStorage.setItem('global_paid_v6', globalPaid);
-                            localStorage.setItem('global_returned_hours_v6', globalReturnedHours);
+                            localStorage.setItem('weekly_accounting_v6', JSON.stringify(weeklyAccounting));
+                            localStorage.setItem('monthly_accounting_v6', JSON.stringify(monthlyAccounting));
                         }
-                        inputGlobalPaid.value = globalPaid > 0 ? globalPaid : "";
-                        inputGlobalReturned.value = globalReturnedHours > 0 ? globalReturnedHours : "";
+                        inputGlobalPaid.value = "";
+                        inputGlobalReturned.value = "";
+                        inputGlobalTips.value = "";
+                        inputGlobalCommissions.value = "";
                         loadDateIntoForm(dateInput.value); renderCalendar(); updateGlobalAccounting();
                     }
                 } catch(err) { alert("Error: Fitxer invàlid."); }
