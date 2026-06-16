@@ -2,15 +2,13 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Can Soler — Control Horari</title>
 
-    <!-- CONFIGURACIÓ NATIVA IPHONE (iOS PWA) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Can Soler">
 
-    <!-- ICONA DE L'ESCRIPTORI (🍽️) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🍽️</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🍽️</text></svg>">
 
@@ -36,6 +34,10 @@
             --cal-rest-text: #4e453c;
             --cal-rest-border: #d4c8b8;
 
+            --cal-extra-bg: #f6ead0;
+            --cal-extra-text: #6b4c1f;
+            --cal-extra-border: #b38b4d;
+
             --cal-missing-bg: #ffffff;
             --cal-missing-border: #a39382;
             --shadow-opacity: 0.05;
@@ -60,6 +62,10 @@
             --cal-rest-bg: #261d1b;
             --cal-rest-text: #9e8a7d;
             --cal-rest-border: #362927;
+
+            --cal-extra-bg: #33260f;
+            --cal-extra-text: #e6c789;
+            --cal-extra-border: #8a6a2e;
 
             --cal-missing-bg: #18100f;
             --cal-missing-border: #5c4a45;
@@ -226,7 +232,7 @@
             border-bottom: 1px solid var(--separator);
         }
 
-        input[type="date"], input[type="time"], input[type="number"] {
+        input[type="date"], input[type="time"], input[type="number"], input.amount-input {
             border: 1px solid var(--input-border);
             background: var(--input-bg);
             padding: 8px 10px;
@@ -239,7 +245,7 @@
             -webkit-appearance: none;
         }
 
-        input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus {
+        input[type="date"]:focus, input[type="time"]:focus, input[type="number"]:focus, input.amount-input:focus {
             border-color: var(--gold);
             background: var(--bg-card);
         }
@@ -385,6 +391,7 @@
 
         .day-cell.worked { background-color: var(--cal-worked-bg); border: 1px solid var(--cal-worked-border); color: var(--cal-worked-text); }
         .day-cell.rest { background-color: var(--cal-rest-bg); border: 1px solid var(--cal-rest-border); color: var(--cal-rest-text); }
+        .day-cell.extra { background-color: var(--cal-extra-bg); border: 1px solid var(--cal-extra-border); color: var(--cal-extra-text); }
         .day-cell .hours-label { font-size: 0.55rem; font-weight: 800; position: absolute; bottom: 3px; text-transform: uppercase; }
 
         .day-cell.current-selection {
@@ -430,6 +437,62 @@
             z-index: 9999;
         }
 
+        /* Foc visible per a navegació amb teclat (accessibilitat) */
+        button:focus-visible, input:focus-visible, [role="button"]:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        /* Modal d'edició de totals (substitueix prompt(), fiable en PWA d'iOS) */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(20, 12, 9, 0.55);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 10000;
+        }
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--input-border);
+            border-radius: 22px;
+            padding: 20px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+        }
+        .modal-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 14px;
+            text-align: center;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: 1px solid var(--input-border);
+        }
+        .modal-btn.cancel { background: var(--input-bg); color: var(--text-muted); }
+        .modal-btn.save { background: var(--soler-gradient); color: #fff; border: none; }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; animation: none !important; }
+        }
+
         @media print {
             body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; }
             body::before, #editor-section, .backup-footer, .cal-nav-btn, .theme-toggle-btn, .calendar-legend, #btn-pdf-trigger { display: none !important; }
@@ -438,6 +501,7 @@
             .day-cell { border: 1px solid #cbd5e1 !important; color: #0f172a !important; background: #ffffff !important; box-shadow: none !important; border-radius: 6px !important; }
             .day-cell.worked { background-color: #f8fafc !important; }
             .day-cell.rest { background-color: #f1f5f9 !important; color: #475569 !important; }
+            .day-cell.extra { background-color: #fbf3e0 !important; color: #6b4c1f !important; border-color: #b38b4d !important; }
             .day-cell.current-selection { background: transparent !important; color: #000000 !important; border: 2px solid #000000 !important;}
             .wallet-value { background: none !important; -webkit-text-fill-color: initial !important; color: #000000 !important; }
         }
@@ -445,11 +509,21 @@
 </head>
 <body>
 
-<div id="toast" class="ios-toast">✓ Registrat a Can Soler</div>
+<div id="toast" class="ios-toast" role="status" aria-live="polite">✓ Registrat a Can Soler</div>
+
+<div id="edit-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+    <div class="modal-card">
+        <div class="modal-title" id="edit-modal-title">Modificar total</div>
+        <input type="text" inputmode="decimal" id="edit-modal-input" class="amount-input" style="width:100%;" placeholder="0,00">
+        <div class="modal-actions">
+            <button type="button" class="modal-btn cancel" id="edit-modal-cancel">Cancel·lar</button>
+            <button type="button" class="modal-btn save" id="edit-modal-save">Desar</button>
+        </div>
+    </div>
+</div>
 
 <div class="app-container">
 
-    <!-- HEADER BRANDING -->
     <div class="brand-header-block">
         <svg class="brand-logo-svg" viewBox="0 0 100 100">
             <path d="M35 25 v25 c0 8 5 12 10 12 v18 h10 v-18 c5 0 10-4 10-12 v-25 M40 25 v12 M45 25 v12 M50 25 v12 M55 25 v12 M60 25 v12" />
@@ -462,20 +536,19 @@
         <div class="brand-subtitle">Registre Horari Laboral</div>
     </div>
 
-    <!-- CONTROL ACCIONS -->
     <div class="top-action-bar">
-        <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()">🌙</button>
+        <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Canviar tema clar/fosc">🌙</button>
         <div class="contract-badge">Base: 30h setmanals</div>
     </div>
 
-    <!-- 1. CALENDARI -->
     <div>
         <div class="calendar-header">
             <h2 id="calendar-month-year">Juny 2026</h2>
             <div style="display:flex; gap:6px; align-items:center;">
-                <button type="button" class="cal-nav-btn" id="btn-pdf-trigger" onclick="exportToPDF()" style="font-size:0.8rem; padding: 5px 10px; border-color:var(--gold); color:var(--gold);">📄 PDF</button>
-                <button class="cal-nav-btn" onclick="changeMonth(-1)">&lt;</button>
-                <button class="cal-nav-btn" onclick="changeMonth(1)">&gt;</button>
+                <button type="button" class="cal-nav-btn" id="btn-today-trigger" onclick="goToToday()" style="font-size:0.8rem; padding: 5px 10px;">Avui</button>
+                <button type="button" class="cal-nav-btn" id="btn-pdf-trigger" onclick="exportToPDF()" style="font-size:0.8rem; padding: 5px 10px; border-color:var(--gold); color:var(--gold);" aria-label="Exportar a PDF">📄 PDF</button>
+                <button type="button" class="cal-nav-btn" onclick="changeMonth(-1)" aria-label="Mes anterior">&lt;</button>
+                <button type="button" class="cal-nav-btn" onclick="changeMonth(1)" aria-label="Mes següent">&gt;</button>
             </div>
         </div>
 
@@ -484,18 +557,18 @@
             <div class="calendar-legend">
                 <div class="legend-item"><div class="legend-dot" style="background: var(--cal-worked-bg); border: 1px solid var(--cal-worked-border);"></div>Fet</div>
                 <div class="legend-item"><div class="legend-dot" style="background: var(--cal-rest-bg); border: 1px solid var(--cal-rest-border);"></div>Descans</div>
+                <div class="legend-item"><div class="legend-dot" style="background: var(--cal-extra-bg); border: 1px solid var(--gold);"></div>Dia extra (ND)</div>
                 <div class="legend-item"><div class="legend-dot" style="border: 2px dashed var(--cal-missing-border); background: var(--bg-card)"></div>Buit</div>
             </div>
         </div>
     </div>
 
-    <!-- 2. COMPTES SETMANALS I MENSUALS -->
     <div>
-        <div class="ios-group-title">Comptes d'aquest període</div>
+        <div class="ios-group-title">Comptes d'aquesta setmana</div>
         <div class="ios-group">
             <div class="ios-balance-grid" style="row-gap: 12px; padding: 18px 0;">
                 <div class="balance-item">
-                    <span class="lbl">Hores Extres (Setmana)</span>
+                    <span class="lbl">Hores extres (normal)</span>
                     <span class="val" id="global-accumulated-hours" style="color: var(--gold);">0h</span>
                 </div>
                 <div class="balance-item">
@@ -503,55 +576,65 @@
                     <span class="wallet-value" id="global-pending-money">0,00€</span>
                 </div>
                 <div class="balance-item" style="border-top: 1px solid var(--separator); padding-top: 8px; cursor: pointer;" onclick="editWeeklyField('paid', 'Total Pagat')">
-                    <span class="lbl">Total Pagat (Setm.)<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
+                    <span class="lbl">Total Pagat<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
                     <span class="val" id="global-total-paid" style="font-size: 1.2rem; color: var(--text-muted);">0,00€</span>
                 </div>
                 <div class="balance-item" style="border-top: 1px solid var(--separator); padding-top: 8px; cursor: pointer;" onclick="editWeeklyField('returned', 'Total Retornat')">
-                    <span class="lbl">Total Retornat (Setm.)<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
+                    <span class="lbl">Total Retornat<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
                     <span class="val" id="global-total-returned" style="font-size: 1.2rem; color: var(--text-muted);">0,0h</span>
                 </div>
-                <div class="balance-item" style="border-top: 2px dashed var(--input-border); padding-top: 12px; cursor: pointer;" onclick="editMonthlyField('tips', 'Propines')">
-                    <span class="lbl">Propines (Mes)<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
+                <div class="balance-item" style="border-top: 2px dashed var(--input-border); padding-top: 12px; cursor: pointer;" onclick="editWeeklyField('tips', 'Propines')">
+                    <span class="lbl">Propines<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
                     <span class="val" id="global-total-tips" style="font-size: 1.3rem; color: var(--text-main); font-weight: 800;">0,00€</span>
                 </div>
-                <div class="balance-item" style="border-top: 2px dashed var(--input-border); padding-top: 12px; cursor: pointer;" onclick="editMonthlyField('commissions', 'Comissions')">
-                    <span class="lbl">Comissions (Mes)<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
+                <div class="balance-item" style="border-top: 2px dashed var(--input-border); padding-top: 12px; cursor: pointer;" onclick="editWeeklyField('commissions', 'Comissions')">
+                    <span class="lbl">Comissions<span style="color: var(--gold); font-weight: bold; margin-left: 3px;">›</span></span>
                     <span class="val" id="global-total-commissions" style="font-size: 1.3rem; color: var(--text-main); font-weight: 800;">0,00€</span>
                 </div>
+                <div class="balance-item" style="border-top: 2px dashed var(--input-border); padding-top: 12px; grid-column: span 2;">
+                    <span class="lbl">Dia extra (no descansat)</span>
+                    <span class="val" id="global-total-rest-pay" style="font-size: 1.3rem; color: var(--text-main); font-weight: 800;">0,00€</span>
+                </div>
             </div>
-            
+
             <div class="ios-row">
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir pagament setm. (€)</label>
+                <label for="input-global-paid" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir pagament (€)</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="number" id="input-global-paid" step="any" placeholder="0.00" style="width: 85px;">
+                    <input type="text" inputmode="decimal" id="input-global-paid" class="amount-input" placeholder="0,00" style="width: 85px;">
                     <button type="button" id="btn-add-paid" class="btn-secondary-ios" style="font-size: 1.4rem; padding: 0 6px; font-weight: 800;">+</button>
                 </div>
             </div>
             <div class="ios-row">
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir retorn hores setm. (h)</label>
+                <label for="input-global-returned" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir retorn d'hores (h)</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="number" id="input-global-returned" step="any" placeholder="0.0" style="width: 85px;">
+                    <input type="text" inputmode="decimal" id="input-global-returned" class="amount-input" placeholder="0,0" style="width: 85px;">
                     <button type="button" id="btn-add-returned" class="btn-secondary-ios" style="font-size: 1.4rem; padding: 0 6px; font-weight: 800;">+</button>
                 </div>
             </div>
             <div class="ios-row">
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir propines del mes (€)</label>
+                <label for="input-global-tips" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir propines (€)</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="number" id="input-global-tips" step="any" placeholder="0.00" style="width: 85px;">
+                    <input type="text" inputmode="decimal" id="input-global-tips" class="amount-input" placeholder="0,00" style="width: 85px;">
                     <button type="button" id="btn-add-tips" class="btn-secondary-ios" style="font-size: 1.4rem; padding: 0 6px; font-weight: 800;">+</button>
                 </div>
             </div>
             <div class="ios-row">
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir comissions del mes (€)</label>
+                <label for="input-global-commissions" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir comissions (€)</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="number" id="input-global-commissions" step="any" placeholder="0.00" style="width: 85px;">
+                    <input type="text" inputmode="decimal" id="input-global-commissions" class="amount-input" placeholder="0,00" style="width: 85px;">
                     <button type="button" id="btn-add-commissions" class="btn-secondary-ios" style="font-size: 1.4rem; padding: 0 6px; font-weight: 800;">+</button>
+                </div>
+            </div>
+            <div class="ios-row">
+                <label for="input-global-rest-pay" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Afegir dia extra manual (€)</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" inputmode="decimal" id="input-global-rest-pay" class="amount-input" placeholder="0,00" style="width: 85px;">
+                    <button type="button" id="btn-add-rest-pay" class="btn-secondary-ios" style="font-size: 1.4rem; padding: 0 6px; font-weight: 800;">+</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. BALANÇ SETMANAL -->
     <div>
         <div class="ios-group-title">Balanç d'aquesta Setmana</div>
         <div class="ios-group">
@@ -573,25 +656,28 @@
         </div>
     </div>
 
-    <!-- 4. FORMULARI REGISTRE -->
     <div id="editor-section">
         <div class="ios-group-title" id="form-title">Registrar Horari</div>
         <div class="ios-group">
             <div class="ios-row">
-                <label style="font-weight: 600; font-size:0.95rem;">Data de treball</label>
+                <label for="date" style="font-weight: 600; font-size:0.95rem;">Data de treball</label>
                 <input type="date" id="date">
             </div>
             <div class="ios-row">
-                <label style="font-weight: 600; font-size:0.95rem;">Marcar com a descans</label>
+                <label for="rest_day" style="font-weight: 600; font-size:0.95rem;">Marcar com a descans</label>
                 <input type="checkbox" id="rest_day">
+            </div>
+            <div class="ios-row">
+                <label for="extra_day" style="font-weight: 600; font-size:0.95rem;">Marcar com a dia extra (no descansat)</label>
+                <input type="checkbox" id="extra_day">
             </div>
             <div id="shifts-container">
                 <div class="ios-row">
-                    <label style="font-weight: 600; font-size:0.95rem;">Entrada</label>
+                    <label for="start_1" style="font-weight: 600; font-size:0.95rem;">Entrada</label>
                     <input type="time" id="start_1">
                 </div>
                 <div class="ios-row">
-                    <label style="font-weight: 600; font-size:0.95rem;">Sortida</label>
+                    <label for="end_1" style="font-weight: 600; font-size:0.95rem;">Sortida</label>
                     <input type="time" id="end_1">
                 </div>
                 <div class="ios-row" id="split-trigger-row" style="background: rgba(179,139,77,0.02);">
@@ -601,11 +687,11 @@
                 <div id="second-shift-container" style="display: none;">
                     <div class="shift-section-title">Segona Tanda</div>
                     <div class="ios-row">
-                        <label style="color: var(--text-muted); font-size:0.9rem;">Entrada 2</label>
+                        <label for="start_2" style="color: var(--text-muted); font-size:0.9rem;">Entrada 2</label>
                         <input type="time" id="start_2">
                     </div>
                     <div class="ios-row">
-                        <label style="color: var(--text-muted); font-size:0.9rem;">Sortida 2</label>
+                        <label for="end_2" style="color: var(--text-muted); font-size:0.9rem;">Sortida 2</label>
                         <input type="time" id="end_2">
                     </div>
                 </div>
@@ -614,31 +700,37 @@
         <button type="button" class="btn-soler" id="btn-save-trigger" style="margin-top: 14px;">Desar registre</button>
     </div>
 
-    <!-- 5. APARTAT DE SOU TOTAL ESTIMAT -->
     <div>
         <div class="ios-group-title" id="salary-title">Sou Estimat del Mes</div>
         <div class="ios-group" style="background: var(--bg-card); padding: 20px 16px; text-align: center;">
             <span class="lbl" style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Previsió Sou Net Final</span>
             <span class="wallet-value" id="total-monthly-salary" style="font-size: 2.3rem; font-weight: 900; display: block; margin-bottom: 16px;">1.286,00€</span>
-            
-            <div style="border-top: 1px solid var(--separator); padding-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">
+
+            <div style="border-top: 1px solid var(--separator); padding-top: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 8px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">
                 <div>
                     <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8;">Sou Fix Base</span>
                     <span style="color: var(--text-main); font-size: 0.95rem; font-weight: 800;">1286€</span>
                 </div>
                 <div>
-                    <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8;">Valor Extres</span>
+                    <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8;">Hores extres (normal)</span>
                     <span id="salary-overtime-value" style="color: var(--text-main); font-size: 0.95rem; font-weight: 800;">0,00€</span>
                 </div>
                 <div>
-                    <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8;">Prop. + Comis.</span>
-                    <span id="salary-others-value" style="color: var(--text-main); font-size: 0.95rem; font-weight: 800;">0,00€</span>
+                    <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8;">Propines</span>
+                    <span id="salary-tips-value" style="color: var(--text-main); font-size: 0.95rem; font-weight: 800;">0,00€</span>
+                </div>
+                <div>
+                    <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8;">Comissions</span>
+                    <span id="salary-commissions-value" style="color: var(--text-main); font-size: 0.95rem; font-weight: 800;">0,00€</span>
+                </div>
+                <div style="grid-column: span 2; border-top: 1px dashed var(--separator); padding-top: 8px;">
+                    <span style="display: block; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8; color: var(--gold);">ND · Dia extra (no descansat)</span>
+                    <span id="salary-nd-value" style="color: var(--gold); font-size: 1.05rem; font-weight: 800;">0,00€</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 6. BACKUP -->
     <footer class="backup-footer">
         <button type="button" class="btn-link-backup" onclick="exportData()">📥 Còpia</button>
         <button type="button" class="btn-link-backup" onclick="importData()">📤 Carregar</button>
@@ -662,16 +754,43 @@
         return `${y}-${m}-${d}`;
     }
 
+    // Accepta coma o punt com a separador decimal i ignora text no numèric.
+    function parseLocaleNumber(str) {
+        if (str === null || str === undefined) return 0;
+        const n = parseFloat(String(str).replace(',', '.').trim());
+        return isNaN(n) ? 0 : n;
+    }
+
+    // Lectura segura: si una clau està corrompuda no bloqueja l'app.
+    function safeLoad(key, fallback) {
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return fallback;
+            const parsed = JSON.parse(raw);
+            return (parsed && typeof parsed === 'object') ? parsed : fallback;
+        } catch (e) {
+            console.warn('Dades corrompudes a', key, '— es reinicia aquesta clau.');
+            return fallback;
+        }
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg || "✓ Registrat a Can Soler";
+        t.style.display = 'block';
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { t.style.display = 'none'; t.innerText = "✓ Registrat a Can Soler"; }, 2000);
+    }
+
     let workData = {};
-    let weeklyAccounting = {}; 
-    let monthlyAccounting = {}; 
+    let weeklyAccounting = {};
     let hasSplitActive = false;
     let activeTheme = 'light';
 
     if (storageAvailable) {
-        workData = JSON.parse(localStorage.getItem('work_hours_soler_v6')) || {};
-        weeklyAccounting = JSON.parse(localStorage.getItem('weekly_accounting_v6')) || {};
-        monthlyAccounting = JSON.parse(localStorage.getItem('monthly_accounting_v6')) || {};
+        workData = safeLoad('work_hours_soler_v6', {});
+        weeklyAccounting = safeLoad('weekly_accounting_v6', {});
         activeTheme = localStorage.getItem('theme_soler_v6') || 'light';
     }
 
@@ -680,10 +799,11 @@
         document.getElementById('theme-toggle-btn').innerText = '☀️';
     }
 
-    let currentDisplayDate = new Date(2026, 5, 13);
+    let currentDisplayDate = new Date();
 
     const dateInput = document.getElementById('date');
     const restDayCheckbox = document.getElementById('rest_day');
+    const extraDayCheckbox = document.getElementById('extra_day');
     const shiftsContainer = document.getElementById('shifts-container');
     const secondShiftContainer = document.getElementById('second-shift-container');
     const btnAddSplit = document.getElementById('btn-add-split');
@@ -697,6 +817,7 @@
     const inputGlobalReturned = document.getElementById('input-global-returned');
     const inputGlobalTips = document.getElementById('input-global-tips');
     const inputGlobalCommissions = document.getElementById('input-global-commissions');
+    const inputGlobalRestPay = document.getElementById('input-global-rest-pay');
 
     dateInput.value = getLocalDateString(currentDisplayDate);
 
@@ -714,6 +835,13 @@
     }
 
     function exportToPDF() { window.print(); }
+
+    function goToToday() {
+        currentDisplayDate = new Date();
+        dateInput.value = getLocalDateString(currentDisplayDate);
+        loadDateIntoForm(dateInput.value);
+        renderCalendar();
+    }
 
     btnAddSplit.addEventListener('click', function() {
         if (!hasSplitActive) { showSecondShiftFields(); } else { hideSecondShiftFields(); cleanSecondShiftFields(); }
@@ -739,7 +867,19 @@
     }
 
     restDayCheckbox.addEventListener('change', function() {
-        if (this.checked) { shiftsContainer.style.display = 'none'; } else { shiftsContainer.style.display = 'block'; }
+        if (this.checked) {
+            extraDayCheckbox.checked = false;
+            shiftsContainer.style.display = 'none';
+        } else {
+            shiftsContainer.style.display = 'block';
+        }
+    });
+
+    extraDayCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            restDayCheckbox.checked = false;
+            shiftsContainer.style.display = 'block';
+        }
     });
 
     function calculateShiftHours(start, end) {
@@ -752,10 +892,25 @@
         return (endMinutes - startMinutes) / 60;
     }
 
-    function getDayTotalHours(dayData) {
-        if (!dayData || dayData.restDay) return 0;
+    function getShiftHours(dayData) {
+        if (!dayData) return 0;
         return calculateShiftHours(dayData.s1_in, dayData.s1_out) + calculateShiftHours(dayData.s2_in, dayData.s2_out);
     }
+
+    // Hores de la jornada NORMAL: compten per a la base de 30h i les extres per sobre de 30h.
+    // Els dies de descans i els dies extra (no descansat) NO hi compten.
+    function getDayTotalHours(dayData) {
+        if (!dayData || dayData.restDay || dayData.extraDay) return 0;
+        return getShiftHours(dayData);
+    }
+
+    // Hores d'un dia marcat com a "dia extra (no descansat)": totes són hores extra.
+    function getExtraDayHours(dayData) {
+        if (!dayData || dayData.restDay || !dayData.extraDay) return 0;
+        return getShiftHours(dayData);
+    }
+
+    const OVERTIME_RATE = 12;
 
     function getMondayKey(dateStr) {
         const parts = dateStr.split('-');
@@ -790,35 +945,45 @@
         const monthKey = getMonthKey(selectedDateStr);
         const weekDays = getWeekRange(selectedDateStr);
 
+        if (!weeklyAccounting[monKey]) {
+            weeklyAccounting[monKey] = { paid: 0, returned: 0, tips: 0, commissions: 0, restPay: 0 };
+        }
+
         let totalHoursThisWeek = 0;
+        let extraDayHoursThisWeek = 0;
         weekDays.forEach(dateStr => {
-            if (workData[dateStr]) totalHoursThisWeek += getDayTotalHours(workData[dateStr]);
+            if (workData[dateStr]) {
+                totalHoursThisWeek += getDayTotalHours(workData[dateStr]);
+                extraDayHoursThisWeek += getExtraDayHours(workData[dateStr]);
+            }
         });
+        let extraDayMoneyThisWeek = extraDayHoursThisWeek * OVERTIME_RATE;
 
         let extraHoursThisWeek = totalHoursThisWeek > 30 ? (totalHoursThisWeek - 30) : 0;
-        let account = weeklyAccounting[monKey] || { paid: 0, returned: 0 };
-        let weekPaid = account.paid || 0;
-        let weekReturned = account.returned || 0;
+        let account = weeklyAccounting[monKey];
+
+        // ESCUT DE SEGURETAT: Autocuració instantània contra possibles errors de memòria antics (NaN o undefined)
+        let weekPaid = parseFloat(account.paid) || 0;
+        let weekReturned = parseFloat(account.returned) || 0;
+        let weekTips = parseFloat(account.tips) || 0;
+        let weekCommissions = parseFloat(account.commissions) || 0;
+        let weekRestPay = parseFloat(account.restPay) || 0;
 
         let totalMoneyEarned = extraHoursThisWeek * 12;
         let moneyDeductedByHours = weekReturned * 12;
         let finalPendingMoney = totalMoneyEarned - weekPaid - moneyDeductedByHours;
         if (finalPendingMoney < 0) finalPendingMoney = 0;
 
-        // UNIFICACIÓ DE FORMAT: Tot a comes decimals
+        // Actualització visual de la graella de la setmana
         document.getElementById('global-accumulated-hours').innerText = extraHoursThisWeek.toFixed(1).replace('.', ',') + "h";
         document.getElementById('global-pending-money').innerText = finalPendingMoney.toFixed(2).replace('.', ',') + "€";
         document.getElementById('global-total-paid').innerText = weekPaid.toFixed(2).replace('.', ',') + "€";
         document.getElementById('global-total-returned').innerText = weekReturned.toFixed(1).replace('.', ',') + "h";
+        document.getElementById('global-total-tips').innerText = weekTips.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('global-total-commissions').innerText = weekCommissions.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('global-total-rest-pay').innerText = (extraDayMoneyThisWeek + weekRestPay).toFixed(2).replace('.', ',') + "€";
 
-        let monthAccount = monthlyAccounting[monthKey] || { tips: 0, commissions: 0 };
-        let monthTips = monthAccount.tips || 0;
-        let monthCommissions = monthAccount.commissions || 0;
-
-        document.getElementById('global-total-tips').innerText = monthTips.toFixed(2).replace('.', ',') + "€";
-        document.getElementById('global-total-commissions').innerText = monthCommissions.toFixed(2).replace('.', ',') + "€";
-
-        // PANELL MOTIVACIONAL
+        // --- CÀLCUL SOU GLOBAL MENSUAL REVISAT I GARANTIT ---
         const baseSalary = 1286;
 
         let monthlyWeeksGroups = {};
@@ -837,12 +1002,42 @@
             }
         });
 
-        let totalOthersMonth = monthTips + monthCommissions;
-        let finalEstimatedSalary = baseSalary + totalExtraHoursMoneyMonth + totalOthersMonth;
+        // Diners dels dies extra (no descansat): totes les hores compten com a extra.
+        let extraDayMoneyMonth = 0;
+        Object.keys(workData).forEach(dStr => {
+            if (getMonthKey(getMondayKey(dStr)) === monthKey) {
+                extraDayMoneyMonth += getExtraDayHours(workData[dStr]) * OVERTIME_RATE;
+            }
+        });
+
+        let totalTipsMonth = 0;
+        let totalCommissionsMonth = 0;
+        let totalRestPayMonth = 0;
+        let totalReturnedMonth = 0;
+
+        Object.keys(weeklyAccounting).forEach(wKey => {
+            if (getMonthKey(wKey) === monthKey) {
+                let acc = weeklyAccounting[wKey];
+                totalTipsMonth += parseFloat(acc.tips) || 0;
+                totalCommissionsMonth += parseFloat(acc.commissions) || 0;
+                totalRestPayMonth += parseFloat(acc.restPay) || 0;
+                totalReturnedMonth += parseFloat(acc.returned) || 0;
+            }
+        });
+
+        // Les hores retornades (compensades amb temps lliure) no es cobren:
+        // es descompten del valor de les extres, igual que al balanç setmanal.
+        let netExtraHoursMoneyMonth = totalExtraHoursMoneyMonth - (totalReturnedMonth * 12);
+        if (netExtraHoursMoneyMonth < 0) netExtraHoursMoneyMonth = 0;
+
+        let ndMoneyMonth = extraDayMoneyMonth + totalRestPayMonth;
+        let finalEstimatedSalary = baseSalary + netExtraHoursMoneyMonth + ndMoneyMonth + totalTipsMonth + totalCommissionsMonth;
 
         document.getElementById('total-monthly-salary').innerText = finalEstimatedSalary.toFixed(2).replace('.', ',') + "€";
-        document.getElementById('salary-overtime-value').innerText = totalExtraHoursMoneyMonth.toFixed(2).replace('.', ',') + "€";
-        document.getElementById('salary-others-value').innerText = totalOthersMonth.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('salary-overtime-value').innerText = netExtraHoursMoneyMonth.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('salary-tips-value').innerText = totalTipsMonth.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('salary-commissions-value').innerText = totalCommissionsMonth.toFixed(2).replace('.', ',') + "€";
+        document.getElementById('salary-nd-value').innerText = ndMoneyMonth.toFixed(2).replace('.', ',') + "€";
 
         const monthNames = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
         document.getElementById('salary-title').innerText = `Sou Estimat de ${monthNames[currentDisplayDate.getMonth()]}`;
@@ -856,7 +1051,7 @@
             if (workData[dateStr]) totalHours += getDayTotalHours(workData[dateStr]);
         });
 
-        document.getElementById('total-hours').innerText = totalHours.toFixed(1) + "h";
+        document.getElementById('total-hours').innerText = totalHours.toFixed(1).replace('.', ',') + "h";
         const balanceLabel = document.getElementById('balance-label');
         const balanceValue = document.getElementById('balance-value');
 
@@ -868,13 +1063,28 @@
         if (totalHours >= 30) {
             let extraHours = totalHours - 30;
             balanceLabel.innerText = "Extra Setmana";
-            balanceValue.innerText = "+" + extraHours.toFixed(1) + "h";
+            balanceValue.innerText = "+" + extraHours.toFixed(1).replace('.', ',') + "h";
             balanceValue.style.color = "var(--cal-worked-text)";
         } else {
             let owedHours = 30 - totalHours;
             balanceLabel.innerText = "Mancant";
-            balanceValue.innerText = "-" + owedHours.toFixed(1) + "h";
+            balanceValue.innerText = "-" + owedHours.toFixed(1).replace('.', ',') + "h";
             balanceValue.style.color = "var(--text-main)";
+        }
+    }
+
+    function selectDayInteractive(dateStr, fromKeyboard) {
+        dateInput.value = dateStr;
+        loadDateIntoForm(dateStr);
+        renderCalendar();
+        if (fromKeyboard) {
+            // Amb teclat mantenim el focus al calendari per poder seguir navegant.
+            requestAnimationFrame(() => {
+                const sel = calendarGrid.querySelector('.day-cell.current-selection');
+                if (sel) sel.focus();
+            });
+        } else {
+            document.getElementById('editor-section').scrollIntoView({ behavior: 'smooth' });
         }
     }
 
@@ -901,28 +1111,42 @@
             const cellDate = new Date(year, month, day);
             const dateStr = getLocalDateString(cellDate);
             const cell = document.createElement('div'); cell.className = 'day-cell';
+            cell.setAttribute('role', 'button');
+            cell.setAttribute('tabindex', '0');
 
-            if (dateStr === dateInput.value) cell.classList.add('current-selection');
+            const isSelected = (dateStr === dateInput.value);
+            if (isSelected) cell.classList.add('current-selection');
             cell.innerText = day;
 
+            let stateLabel = "sense registre";
             if (workData[dateStr]) {
                 if (workData[dateStr].restDay) {
                     cell.classList.add('rest');
                     const label = document.createElement('div'); label.className = 'hours-label'; label.innerText = "Desc"; cell.appendChild(label);
+                    stateLabel = "descans";
+                } else if (workData[dateStr].extraDay) {
+                    let extraH = getExtraDayHours(workData[dateStr]);
+                    cell.classList.add('extra');
+                    const label = document.createElement('div'); label.className = 'hours-label'; label.innerText = "ND " + extraH.toFixed(1).replace('.', ',') + "h"; cell.appendChild(label);
+                    stateLabel = "dia extra, " + extraH.toFixed(1).replace('.', ',') + " hores no descansades";
                 } else {
                     let totalH = getDayTotalHours(workData[dateStr]);
                     if (totalH > 0) {
                         cell.classList.add('worked');
-                        const label = document.createElement('div'); label.className = 'hours-label'; label.innerText = totalH.toFixed(1) + "h"; cell.appendChild(label);
+                        const label = document.createElement('div'); label.className = 'hours-label'; label.innerText = totalH.toFixed(1).replace('.', ',') + "h"; cell.appendChild(label);
+                        stateLabel = totalH.toFixed(1).replace('.', ',') + " hores fetes";
                     }
                 }
             }
 
-            cell.addEventListener('click', () => {
-                dateInput.value = dateStr;
-                loadDateIntoForm(dateStr);
-                renderCalendar();
-                document.getElementById('editor-section').scrollIntoView({ behavior: 'smooth' });
+            cell.setAttribute('aria-label', `${day} de ${monthNames[month]} de ${year}, ${stateLabel}${isSelected ? ', seleccionat' : ''}`);
+
+            cell.addEventListener('click', () => selectDayInteractive(dateStr, false));
+            cell.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    selectDayInteractive(dateStr, true);
+                }
             });
             calendarGrid.appendChild(cell);
         }
@@ -932,7 +1156,8 @@
         hideSecondShiftFields();
         if (workData[dateStr]) {
             const d = workData[dateStr];
-            restDayCheckbox.checked = d.restDay;
+            restDayCheckbox.checked = !!d.restDay;
+            extraDayCheckbox.checked = !!d.extraDay && !d.restDay;
             document.getElementById('start_1').value = d.s1_in || "";
             document.getElementById('end_1').value = d.s1_out || "";
             document.getElementById('start_2').value = d.s2_in || "";
@@ -940,111 +1165,95 @@
             if (d.s2_in || d.s2_out) { showSecondShiftFields(); }
         } else {
             restDayCheckbox.checked = false;
+            extraDayCheckbox.checked = false;
             document.getElementById('start_1').value = ""; document.getElementById('end_1').value = "";
             cleanSecondShiftFields();
         }
         restDayCheckbox.dispatchEvent(new Event('change'));
+        extraDayCheckbox.dispatchEvent(new Event('change'));
         updateWeeklySummary();
-        updateGlobalAccounting(); 
+        updateGlobalAccounting();
+    }
+
+    // --- Modal d'edició de totals (substitueix prompt(), fiable en PWA d'iOS) ---
+    const editModal = document.getElementById('edit-modal');
+    const editModalInput = document.getElementById('edit-modal-input');
+    const editModalTitle = document.getElementById('edit-modal-title');
+    let pendingEditField = null;
+    let pendingEditMonKey = null;
+    let lastFocusedBeforeModal = null;
+
+    function ensureWeek(monKey) {
+        if (!weeklyAccounting[monKey]) {
+            weeklyAccounting[monKey] = { paid: 0, returned: 0, tips: 0, commissions: 0, restPay: 0 };
+        }
+        return weeklyAccounting[monKey];
+    }
+
+    function persistAccounting() {
+        if (storageAvailable) localStorage.setItem('weekly_accounting_v6', JSON.stringify(weeklyAccounting));
     }
 
     function editWeeklyField(field, label) {
-        const selectedDateStr = dateInput.value;
-        const monKey = getMondayKey(selectedDateStr);
-        if (!weeklyAccounting[monKey]) weeklyAccounting[monKey] = { paid: 0, returned: 0 };
-        
-        let currentVal = weeklyAccounting[monKey][field] || 0;
-        let newVal = prompt(`Modificar el total de ${label} d'aquesta setmana:`, currentVal);
-        
-        if (newVal !== null) {
-            let parsed = parseFloat(newVal.replace(',', '.')) || 0;
-            if (parsed < 0) parsed = 0;
-            weeklyAccounting[monKey][field] = parsed;
-            if (storageAvailable) localStorage.setItem('weekly_accounting_v6', JSON.stringify(weeklyAccounting));
-            updateGlobalAccounting();
-        }
+        const monKey = getMondayKey(dateInput.value);
+        ensureWeek(monKey);
+        pendingEditField = field;
+        pendingEditMonKey = monKey;
+        editModalTitle.innerText = `Modificar ${label} (aquesta setmana)`;
+        const current = parseFloat(weeklyAccounting[monKey][field]) || 0;
+        editModalInput.value = current ? String(current).replace('.', ',') : "";
+        lastFocusedBeforeModal = document.activeElement;
+        editModal.style.display = 'flex';
+        setTimeout(() => { editModalInput.focus(); editModalInput.select(); }, 50);
     }
 
-    function editMonthlyField(field, label) {
-        const selectedDateStr = dateInput.value;
-        const monthKey = getMonthKey(selectedDateStr);
-        if (!monthlyAccounting[monthKey]) monthlyAccounting[monthKey] = { tips: 0, commissions: 0 };
-        
-        let currentVal = monthlyAccounting[monthKey][field] || 0;
-        let newVal = prompt(`Modificar les ${label} totals d'aquest mes:`, currentVal);
-        
-        if (newVal !== null) {
-            let parsed = parseFloat(newVal.replace(',', '.')) || 0;
-            if (parsed < 0) parsed = 0;
-            monthlyAccounting[monthKey][field] = parsed;
-            if (storageAvailable) localStorage.setItem('monthly_accounting_v6', JSON.stringify(monthlyAccounting));
-            updateGlobalAccounting();
+    function closeEditModal() {
+        editModal.style.display = 'none';
+        pendingEditField = null;
+        pendingEditMonKey = null;
+        if (lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === 'function') {
+            lastFocusedBeforeModal.focus();
         }
+        lastFocusedBeforeModal = null;
     }
 
-    document.getElementById('btn-add-paid').addEventListener('click', function() {
-        let val = parseFloat(inputGlobalPaid.value) || 0;
-        if (val !== 0) {
-            const selectedDateStr = dateInput.value;
-            const monKey = getMondayKey(selectedDateStr);
-            if (!weeklyAccounting[monKey]) weeklyAccounting[monKey] = { paid: 0, returned: 0 };
-            weeklyAccounting[monKey].paid += val;
-            if (weeklyAccounting[monKey].paid < 0) weeklyAccounting[monKey].paid = 0;
-            if (storageAvailable) localStorage.setItem('weekly_accounting_v6', JSON.stringify(weeklyAccounting));
-            inputGlobalPaid.value = ""; 
+    document.getElementById('edit-modal-cancel').addEventListener('click', closeEditModal);
+    editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
+    document.getElementById('edit-modal-save').addEventListener('click', function() {
+        if (pendingEditField && pendingEditMonKey) {
+            let parsed = parseLocaleNumber(editModalInput.value);
+            if (parsed < 0) parsed = 0;
+            ensureWeek(pendingEditMonKey)[pendingEditField] = parsed;
+            persistAccounting();
             updateGlobalAccounting();
-            toast.innerText = "✓ Pagament setmanal afegit";
-            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; toast.innerText = "✓ Registrat a Can Soler"; }, 2000);
+            showToast("✓ Total actualitzat");
         }
+        closeEditModal();
+    });
+    editModalInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('edit-modal-save').click();
+        if (e.key === 'Escape') closeEditModal();
     });
 
-    document.getElementById('btn-add-returned').addEventListener('click', function() {
-        let val = parseFloat(inputGlobalReturned.value) || 0;
-        if (val !== 0) {
-            const selectedDateStr = dateInput.value;
-            const monKey = getMondayKey(selectedDateStr);
-            if (!weeklyAccounting[monKey]) weeklyAccounting[monKey] = { paid: 0, returned: 0 };
-            weeklyAccounting[monKey].returned += val;
-            if (weeklyAccounting[monKey].returned < 0) weeklyAccounting[monKey].returned = 0;
-            if (storageAvailable) localStorage.setItem('weekly_accounting_v6', JSON.stringify(weeklyAccounting));
-            inputGlobalReturned.value = ""; 
-            updateGlobalAccounting();
-            toast.innerText = "✓ Retorn d'hores afegit";
-            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; toast.innerText = "✓ Registrat a Can Soler"; }, 2000);
-        }
-    });
+    // --- Afegir imports setmanals (un sol gestor, amb coma decimal i blindatge NaN) ---
+    function addToWeeklyField(inputEl, field, successMsg) {
+        let val = parseLocaleNumber(inputEl.value);
+        if (val === 0) return;
+        const monKey = getMondayKey(dateInput.value);
+        const week = ensureWeek(monKey);
+        week[field] = (parseFloat(week[field]) || 0) + val;
+        if (week[field] < 0) week[field] = 0;
+        persistAccounting();
+        inputEl.value = "";
+        updateGlobalAccounting();
+        showToast(successMsg);
+    }
 
-    document.getElementById('btn-add-tips').addEventListener('click', function() {
-        let val = parseFloat(inputGlobalTips.value) || 0;
-        if (val !== 0) {
-            const selectedDateStr = dateInput.value;
-            const monthKey = getMonthKey(selectedDateStr);
-            if (!monthlyAccounting[monthKey]) monthlyAccounting[monthKey] = { tips: 0, commissions: 0 };
-            monthlyAccounting[monthKey].tips += val;
-            if (monthlyAccounting[monthKey].tips < 0) monthlyAccounting[monthKey].tips = 0;
-            if (storageAvailable) localStorage.setItem('monthly_accounting_v6', JSON.stringify(monthlyAccounting));
-            inputGlobalTips.value = ""; 
-            updateGlobalAccounting();
-            toast.innerText = "✓ Propines mensuals afegides";
-            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; toast.innerText = "✓ Registrat a Can Soler"; }, 2000);
-        }
-    });
-
-    document.getElementById('btn-add-commissions').addEventListener('click', function() {
-        let val = parseFloat(inputGlobalCommissions.value) || 0;
-        if (val !== 0) {
-            const selectedDateStr = dateInput.value;
-            const monthKey = getMonthKey(selectedDateStr);
-            if (!monthlyAccounting[monthKey]) monthlyAccounting[monthKey] = { tips: 0, commissions: 0 };
-            monthlyAccounting[monthKey].commissions += val;
-            if (monthlyAccounting[monthKey].commissions < 0) monthlyAccounting[monthKey].commissions = 0;
-            if (storageAvailable) localStorage.setItem('monthly_accounting_v6', JSON.stringify(monthlyAccounting));
-            inputGlobalCommissions.value = ""; 
-            updateGlobalAccounting();
-            toast.innerText = "✓ Comissions mensuals afegides";
-            toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; toast.innerText = "✓ Registrat a Can Soler"; }, 2000);
-        }
-    });
+    document.getElementById('btn-add-paid').addEventListener('click', () => addToWeeklyField(inputGlobalPaid, 'paid', "✓ Pagament afegit"));
+    document.getElementById('btn-add-returned').addEventListener('click', () => addToWeeklyField(inputGlobalReturned, 'returned', "✓ Retorn d'hores afegit"));
+    document.getElementById('btn-add-tips').addEventListener('click', () => addToWeeklyField(inputGlobalTips, 'tips', "✓ Propines afegides"));
+    document.getElementById('btn-add-commissions').addEventListener('click', () => addToWeeklyField(inputGlobalCommissions, 'commissions', "✓ Comissions afegides"));
+    document.getElementById('btn-add-rest-pay').addEventListener('click', () => addToWeeklyField(inputGlobalRestPay, 'restPay', "✓ Dia extra afegit"));
 
     dateInput.addEventListener('change', (e) => {
         const parts = e.target.value.split('-');
@@ -1053,65 +1262,167 @@
         renderCalendar();
     });
 
-    // CORRECCIÓ DE SEGURETAT: Actualització correcta del marcatge de cel·la al fer salt de mes
     function changeMonth(direction) {
-        currentDisplayDate.setMonth(currentDisplayDate.getMonth() + direction);
-        const targetDate = new Date(currentDisplayDate.getFullYear(), currentDisplayDate.getMonth(), 1);
-        dateInput.value = getLocalDateString(targetDate);
+        // Construïm la data des de l'any/mes (dia 1) per evitar el salt de mesos
+        // quan el dia actual no existeix al mes destí (p. ex. 31 -> febrer).
+        const y = currentDisplayDate.getFullYear();
+        const m = currentDisplayDate.getMonth() + direction;
+        currentDisplayDate = new Date(y, m, 1);
+        dateInput.value = getLocalDateString(currentDisplayDate);
         renderCalendar();
-        loadDateIntoForm(dateInput.value); 
+        loadDateIntoForm(dateInput.value);
     }
 
     saveButton.addEventListener('click', function() {
         const selectedDate = dateInput.value;
         if(!selectedDate) return;
+
+        const isRest = restDayCheckbox.checked;
+        const isExtra = extraDayCheckbox.checked && !isRest;
+        // Si és descans, no desem hores (evita hores fantasma a workData).
+        const s1_in = isRest ? "" : document.getElementById('start_1').value;
+        const s1_out = isRest ? "" : document.getElementById('end_1').value;
+        const s2_in = isRest ? "" : document.getElementById('start_2').value;
+        const s2_out = isRest ? "" : document.getElementById('end_2').value;
+
+        // Si no és descans i no hi ha cap hora, esborrem el registre en lloc de
+        // desar un objecte buit (evita brossa de dades al calendari).
+        if (!isRest && !s1_in && !s1_out && !s2_in && !s2_out) {
+            if (workData[selectedDate]) {
+                delete workData[selectedDate];
+                if (storageAvailable) localStorage.setItem('work_hours_soler_v6', JSON.stringify(workData));
+                renderCalendar(); updateWeeklySummary(); updateGlobalAccounting();
+                showToast("✓ Registre buidat");
+            }
+            return;
+        }
+
+        // Avís suau si un torn surt anormalment llarg (probable error d'hora).
+        if (!isRest) {
+            const dur1 = calculateShiftHours(s1_in, s1_out);
+            const dur2 = calculateShiftHours(s2_in, s2_out);
+            if (dur1 > 14 || dur2 > 14) {
+                showToast("⚠️ Revisa les hores: torn molt llarg");
+            }
+        }
+
         workData[selectedDate] = {
-            restDay: restDayCheckbox.checked,
-            s1_in: document.getElementById('start_1').value,
-            s1_out: document.getElementById('end_1').value,
-            s2_in: document.getElementById('start_2').value,
-            s2_out: document.getElementById('end_2').value
+            restDay: isRest,
+            extraDay: isExtra,
+            s1_in: s1_in,
+            s1_out: s1_out,
+            s2_in: s2_in,
+            s2_out: s2_out
         };
         if (storageAvailable) localStorage.setItem('work_hours_soler_v6', JSON.stringify(workData));
         renderCalendar(); updateWeeklySummary(); updateGlobalAccounting();
-        toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 2000);
+        if (!(calculateShiftHours(s1_in, s1_out) > 14 || calculateShiftHours(s2_in, s2_out) > 14) || isRest) {
+            showToast("✓ Registrat a Can Soler");
+        }
     });
 
     function exportData() {
-        let backup = { workData, weeklyAccounting, monthlyAccounting };
+        let backup = { workData, weeklyAccounting };
         let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
         let downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "BACKUP_CAN_SOLER.json");
+        const stamp = getLocalDateString(new Date());
+        downloadAnchor.setAttribute("download", `BACKUP_CAN_SOLER_${stamp}.json`);
         document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
     }
 
+    function sanitizeWorkData(raw) {
+        const clean = {};
+        if (!raw || typeof raw !== 'object') return clean;
+        Object.keys(raw).forEach(dateStr => {
+            const d = raw[dateStr];
+            if (!d || typeof d !== 'object') return;
+            clean[dateStr] = {
+                restDay: !!d.restDay,
+                extraDay: !!d.extraDay && !d.restDay,
+                s1_in: typeof d.s1_in === 'string' ? d.s1_in : "",
+                s1_out: typeof d.s1_out === 'string' ? d.s1_out : "",
+                s2_in: typeof d.s2_in === 'string' ? d.s2_in : "",
+                s2_out: typeof d.s2_out === 'string' ? d.s2_out : ""
+            };
+        });
+        return clean;
+    }
+
+    function sanitizeAccounting(raw) {
+        const clean = {};
+        if (!raw || typeof raw !== 'object') return clean;
+        Object.keys(raw).forEach(wKey => {
+            const a = raw[wKey] || {};
+            clean[wKey] = {
+                paid: parseFloat(a.paid) || 0,
+                returned: parseFloat(a.returned) || 0,
+                tips: parseFloat(a.tips) || 0,
+                commissions: parseFloat(a.commissions) || 0,
+                restPay: parseFloat(a.restPay) || 0
+            };
+        });
+        return clean;
+    }
+
     function importData() {
-        let input = document.createElement('input'); input.type = 'file'; input.accept = '.json';
+        let input = document.createElement('input'); input.type = 'file'; input.accept = '.json,application/json';
         input.onchange = e => {
-            let file = e.target.files[0]; let reader = new FileReader(); reader.readAsText(file, 'UTF-8');
+            let file = e.target.files[0];
+            if (!file) return;
+            let reader = new FileReader(); reader.readAsText(file, 'UTF-8');
             reader.onload = readerEvent => {
                 try {
                     let content = JSON.parse(readerEvent.target.result);
-                    if (content.workData) {
-                        workData = content.workData; 
-                        weeklyAccounting = content.weeklyAccounting || {};
-                        monthlyAccounting = content.monthlyAccounting || {};
+                    if (content && typeof content === 'object' && content.workData && typeof content.workData === 'object') {
+                        if (!confirm("Carregar aquesta còpia reemplaçarà totes les dades actuals. Vols continuar?")) {
+                            return;
+                        }
+                        workData = sanitizeWorkData(content.workData);
+                        weeklyAccounting = sanitizeAccounting(content.weeklyAccounting);
                         if (storageAvailable) {
                             localStorage.setItem('work_hours_soler_v6', JSON.stringify(workData));
                             localStorage.setItem('weekly_accounting_v6', JSON.stringify(weeklyAccounting));
-                            localStorage.setItem('monthly_accounting_v6', JSON.stringify(monthlyAccounting));
                         }
                         inputGlobalPaid.value = "";
                         inputGlobalReturned.value = "";
                         inputGlobalTips.value = "";
                         inputGlobalCommissions.value = "";
+                        inputGlobalRestPay.value = "";
                         loadDateIntoForm(dateInput.value); renderCalendar(); updateGlobalAccounting();
+                        showToast("✓ Còpia carregada correctament");
+                    } else {
+                        showToast("⚠️ El fitxer no té el format esperat");
                     }
-                } catch(err) { alert("Error: Fitxer invàlid."); }
+                } catch(err) {
+                    showToast("⚠️ Fitxer invàlid o malmès");
+                }
             }
         }
         input.click();
     }
+
+    // Sincronitza si s'edita des d'una altra pestanya o finestra.
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'work_hours_soler_v6') {
+            workData = safeLoad('work_hours_soler_v6', {});
+            renderCalendar(); updateWeeklySummary(); updateGlobalAccounting();
+        } else if (e.key === 'weekly_accounting_v6') {
+            weeklyAccounting = safeLoad('weekly_accounting_v6', {});
+            updateGlobalAccounting();
+        }
+    });
+
+    // Fem accessibles per teclat els totals editables (divs amb onclick).
+    document.querySelectorAll('.balance-item[onclick]').forEach(el => {
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                el.click();
+            }
+        });
+    });
 
     loadDateIntoForm(dateInput.value);
     renderCalendar();
